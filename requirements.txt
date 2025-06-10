@@ -1,0 +1,6 @@
+httpx
+h2
+grpcio-tools
+protoc-wheel
+dotenv
+googleapis-common-protos

@@ -1,0 +1,1 @@
+https://github.com/ilya-kozyr/android-ssl-pinning-bypass

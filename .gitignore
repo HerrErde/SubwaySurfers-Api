@@ -1,0 +1,6 @@
+*.*apk*
+*.zip
+*_pb2.py
+.env
+.venv
+__pycache__

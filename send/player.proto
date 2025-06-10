@@ -1,0 +1,124 @@
+syntax = "proto3";
+
+package player.ext.v1;
+
+message Empty {}
+
+message Time {
+  uint64 sec = 1;
+  uint64 nsec = 2;
+}
+
+message InviteQuota {
+  uint32 max_friends = 1;
+  uint32 friend_count = 2;
+  uint32 invite_count = 4;
+  uint32 max_invites = 5;
+}
+
+message PlayerRequest {
+  string player = 1;
+}
+
+message UserInfo {
+  string uuid = 1;
+  UserData userdata = 2;
+}
+
+message CreatePlayerRequest {
+  string name = 1;
+  string selected_board = 26;
+  string selected_board_upgrades = 34;
+  string selected_character = 18;
+  string selected_country = 42;
+  string selected_background = 50;
+  string selected_frame = 58;
+  string selected_portrait = 66;
+  int32 stat_total_visited_destinations = 76;
+  int32 stat_total_games = 80;
+}
+
+message UserData {
+  string name = 1;
+  string tag = 2;
+  uint32 level = 3;
+  uint32 highscore = 4;
+  map<string, string> metadata = 5;
+  Time created_at = 6;
+  Time update_player_at = 7;
+  Time name_changed_at = 8;
+  string uuid = 9;
+  Time name_change_expires_at = 10;
+}
+
+message PlayerResponse {
+  UserData userdata = 1;
+}
+
+message GetInvitesResponse {
+  message InviteUserUuid {
+    string uuid = 1;
+  }
+
+  message Invite {
+    string action_uuid = 1;
+    InviteUserUuid user_uuid = 2;
+    UserInfo user_info = 3;
+    Time invited_at = 4;
+  }
+
+  message SendInvite {
+    string action_uuid = 1;
+    UserInfo user_info = 2;
+    InviteUserUuid user_uuid = 3;
+    Time invited_at = 4;
+  }
+
+  repeated Invite received_invites = 1; // received invites
+  repeated SendInvite sent_invites = 2; // sent invites
+  InviteQuota quota = 3;
+}
+
+message SendInviteResponse {
+  message UserInvite {
+    string action_uuid = 1;
+    UserInfo invited = 2;
+    UserInfo inviter = 3;
+    Time invited_at = 4;
+  }
+
+  UserInvite userinvite = 1;
+}
+
+message GetFriendsResponse {
+  repeated UserInfo friend = 1;
+  InviteQuota quota = 2;
+}
+
+message UpdatePlayerRequest {
+  string name = 1;
+  int32 level = 2;
+  int64 highscore = 3;
+
+  message Metadata {
+    string selected_character = 1;
+    string selected_board_upgrades = 2;
+    string selected_board = 3;
+  }
+
+  map<string, string> metadata = 4;
+}
+
+message StatusResponse {
+  message Status {
+    int32 status = 1;
+  }
+  Status status = 1;
+}
+
+message GetWalletResponse {
+  message WalletData {
+    Time wallet_last_save_at = 2;
+  }
+  WalletData walletdata = 1;
+}

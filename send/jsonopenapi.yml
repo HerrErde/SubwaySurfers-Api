@@ -1,0 +1,469 @@
+openapi: 3.0.3
+info:
+  title: Subway Surf API
+  version: 1.0.0
+  description: API for interacting with Subway Surf backend services.
+
+servers: []
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+
+  schemas:
+    AuthResponse:
+      type: object
+      properties:
+        idToken:
+          type: string
+        idTokenTtl:
+          type: integer
+        refreshToken:
+          type: string
+        user:
+          type: object
+          properties:
+            id:
+              type: string
+            links:
+              type: array
+              items:
+                type: object
+    AuthRefreshRequest:
+      type: object
+      properties:
+        refreshToken:
+          type: string
+        fbAccessToken:
+          type: string
+          nullable: true
+      required:
+        - refreshToken
+    MailRequest:
+      type: object
+      properties:
+        language:
+          type: string
+        metrics:
+          type: object
+          properties:
+            payer:
+              type: string
+            level:
+              type: string
+            age:
+              type: string
+            language:
+              type: string
+            platform:
+              type: string
+            coppa:
+              type: string
+            gameVersion:
+              type: string
+      required:
+        - language
+        - metrics
+    MailResponse:
+      type: object
+      properties:
+        mail:
+          type: string
+    TournamentRequest:
+      type: object
+      properties:
+        tournamentId:
+          type: string
+        gamedataHash:
+          type: string
+      required:
+        - tournamentId
+        - gamedataHash
+    ABTestingRequest:
+      type: object
+      properties:
+        metrics:
+          type: object
+          properties:
+            payer:
+              type: string
+            level:
+              type: string
+            age:
+              type: string
+            language:
+              type: string
+            platform:
+              type: string
+            coppa:
+              type: string
+            gameVersion:
+              type: string
+      required:
+        - metrics
+    CrossPromoRequest:
+      type: object
+      properties:
+        test:
+          type: boolean
+        language:
+          type: string
+        metrics:
+          type: object
+          properties:
+            payer:
+              type: string
+            level:
+              type: string
+            age:
+              type: string
+            language:
+              type: string
+            platform:
+              type: string
+            coppa:
+              type: string
+            gameVersion:
+              type: string
+        attribution:
+          nullable: true
+          type: object
+    CrossPromoResponse:
+      type: object
+      properties:
+        globalConf:
+          type: object
+          properties:
+            impressionCap:
+              type: object
+              properties:
+                count:
+                  type: integer
+                  example: 50
+                interval:
+                  type: integer
+                  example: 86400000000000
+            frequencyCap:
+              type: object
+              properties:
+                count:
+                  type: integer
+                  example: 25
+                interval:
+                  type: integer
+                  example: 3600000000000
+        campaigns:
+          type: array
+          items: {}
+        attribution:
+          type: object
+          additionalProperties: false
+
+security:
+  - BearerAuth: []
+
+paths:
+  /v2.0/auth/register:
+    servers:
+      - url: https://subway.prod.sybo.net
+    post:
+      summary: Register account
+      responses:
+        '200':
+          description: Refreshed auth tokens
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+
+  /v2.0/auth/refresh:
+    servers:
+      - url: https://subway.prod.sybo.net
+    post:
+      summary: Refresh auth tokens
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthRefreshRequest'
+      responses:
+        '200':
+          description: Refreshed auth tokens
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+
+  /v2.0/mail:
+    servers:
+      - url: https://subway.prod.sybo.net
+    post:
+      summary: Get mail content based on user metrics
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MailRequest'
+      responses:
+        '200':
+          description: Mail response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MailResponse'
+
+  /v3.0/tournament/group:
+    servers:
+      - url: https://subway.prod.sybo.net
+    get:
+      summary: Get tournament group info
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Tournament group details
+          content:
+            application/json:
+              schema:
+                type: object
+    post:
+      summary: Submit tournament group data
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TournamentRequest'
+      responses:
+        '200':
+          description: Tournament submission response
+          content:
+            application/json:
+              schema:
+                type: object
+
+  /v1.0/abtesting/match:
+    servers:
+      - url: https://subway.prod.sybo.net
+    post:
+      summary: AB Testing match for user metrics
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ABTestingRequest'
+      responses:
+        '200':
+          description: AB Testing response
+          content:
+            application/json:
+              schema:
+                type: object
+
+  /v2.0/crosspromo/match:
+    servers:
+      - url: https://subway.prod.sybo.net
+    post:
+      summary: Cross promotion match for user metrics
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                test:
+                  type: boolean
+                language:
+                  type: string
+                metrics:
+                  type: object
+                  properties:
+                    payer:
+                      type: string
+                    level:
+                      type: string
+                    age:
+                      type: string
+                    language:
+                      type: string
+                    platform:
+                      type: string
+                    coppa:
+                      type: string
+                    gameVersion:
+                      type: string
+                attribution:
+                  nullable: true
+                  type: object
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  globalConf:
+                    type: object
+                    properties:
+                      impressionCap:
+                        type: object
+                        properties:
+                          count:
+                            type: integer
+                            example: 50
+                          interval:
+                            type: integer
+                            example: 86400000000000
+                      frequencyCap:
+                        type: object
+                        properties:
+                          count:
+                            type: integer
+                            example: 25
+                          interval:
+                            type: integer
+                            example: 3600000000000
+                  campaigns:
+                    type: array
+                    items: {}
+                  attribution:
+                    type: object
+                    additionalProperties: false
+              example:
+                globalConf:
+                  impressionCap:
+                    count: 50
+                    interval: 86400000000000
+                  frequencyCap:
+                    count: 25
+                    interval: 3600000000000
+                campaigns: []
+                attribution: {}
+
+  /v1/events:
+    servers:
+      - url: https://subway.prod.sybo.net
+    post:
+      summary: Send event analytics data
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                common:
+                  type: object
+                type:
+                  type: string
+                msg:
+                  type: object
+      responses:
+        '200':
+          description: Event accepted
+
+  /v1.0/{game}/{version}/{type}/{manifestSecret}/{experiment}/manifest.json:
+    servers:
+      - url: https://manifest.tower.sybo.net
+    get:
+      summary: Get manifest data
+      parameters:
+        - in: path
+          name: game
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: version
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: type
+          required: true
+          schema:
+            type: string
+            enum: [android, ios]
+        - in: path
+          name: manifestSecret
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: experiment
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Manifest JSON
+          content:
+            application/json:
+              schema:
+                type: object
+
+  /v1.0/{game}/{gamedataSecret}/{file}.json:
+    servers:
+      - url: https://gamedata.tower.sybo.net
+    get:
+      summary: Get gamedata file JSON
+      parameters:
+        - in: path
+          name: game
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: gamedataSecret
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: file
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Gamedata JSON
+          content:
+            application/json:
+              schema:
+                type: object
+
+  /events/v1/sybo/websdk/:
+    servers:
+      - url: https://api.helpshift.com
+    post:
+      summary: Send Helpshift web SDK events
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Helpshift websdk response
+          content:
+            application/json:
+              schema:
+                type: object
