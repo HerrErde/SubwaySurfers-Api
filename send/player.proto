@@ -60,7 +60,7 @@ message GetInvitesResponse {
     string uuid = 1;
   }
 
-  message Invite {
+  message ReceivedInvite {
     string action_uuid = 1;
     InviteUserUuid user_uuid = 2;
     UserInfo user_info = 3;
@@ -74,7 +74,8 @@ message GetInvitesResponse {
     Time invited_at = 4;
   }
 
-  repeated Invite received_invites = 1; // received invites
+message GetInvitesResponse {
+  repeated ReceivedInvite received_invites = 1; // received invites
   repeated SendInvite sent_invites = 2; // sent invites
   InviteQuota quota = 3;
 }
@@ -121,4 +122,17 @@ message GetWalletResponse {
     Time wallet_last_save_at = 2;
   }
   WalletData walletdata = 1;
+}
+
+message GetFriendAndInvitesResponse {
+  message Invites {
+    string action_uuid = 1;
+    InviteUserUuid user_uuid = 2;
+    repeated ReceivedInvite received_invites = 3;
+    repeated SendInvite sent_invites = 4;
+  }
+
+  repeated UserInfo friends = 1;
+  Invites invites = 2;
+  InviteQuota quota = 4;
 }

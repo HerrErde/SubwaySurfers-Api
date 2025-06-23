@@ -348,6 +348,12 @@ quota  {
 
 </details>
 
+
+#### Get FriendsAndInvites
+
+This will get you, you guessed right, your Friends AND Invites
+
+
 #### Sending Friend Request
 
 When sending a friends request to a user it will show the `action_uuid`, the trunicated inviter userinfo (without metadata details) and invited user info

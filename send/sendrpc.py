@@ -418,6 +418,58 @@ def get_invites():
         print("gRPC payload (hex):", grpc_payload.hex())
 
 
+def get_friendsandinvites():
+    from player_pb2 import Empty, GetFriendAndInvitesResponse
+
+    url = api_url + "/rpc/friends.ext.v1.PrivateService/GetFriendsAndInvites"
+
+    msg = Empty()
+
+    payload = msg.SerializeToString()
+
+    # gRPC-Web framing
+    body = b"\x00" + len(payload).to_bytes(4, "big") + payload
+
+    with httpx.Client(http2=True) as client:
+        r = client.post(
+            url,
+            headers=headers,
+            content=body,
+        )
+
+    if "text/html" in r.headers.get("Content-Type", ""):
+        print("Received HTML instead of protobuf. Something went wrong.")
+        return
+
+    if r.status_code != 200:
+        print(f"HTTP error {r.status_code}: {r.text}")
+        return
+
+    raw = r.content
+    if len(raw) < 5:
+        print("gRPC-Web response too short")
+        return
+
+    msg_len = int.from_bytes(raw[1:5], "big")
+    grpc_payload = raw[5 : 5 + msg_len]
+    # print("gRPC payload (hex):", grpc_payload.hex())
+
+    grpc_status = r.headers.get("grpc-status", "0")
+    if grpc_status != "0":
+        print("gRPC Error:", r.headers.get("grpc-message", "Unknown error"))
+        return
+
+    try:
+        resp = GetFriendAndInvitesResponse()
+        resp.ParseFromString(grpc_payload)
+        print(resp)
+    except Exception as e:
+        print("Failed to parse response:", e)
+        message = r.headers.get("grpc-message")
+        print("gRPC message:", message)
+        print("gRPC payload (hex):", grpc_payload.hex())
+
+
 def send_invite(playeruuid: str):
     from player_pb2 import PlayerRequest, SendInviteResponse
 
@@ -701,6 +753,7 @@ def get_wallet():
 # update_player()
 # get_friends()
 # get_invites()
+# get_friendsandinvites()
 # send_invite("0197554e-7bd0-7061-818a-32f59e3254f5")
 # accept_invite("019758f7-4f56-72e4-86e3-7fc950e1d5c2")
 # cancel_invite("0196ea6a-b6e1-7293-8576-260bd1bb294b")

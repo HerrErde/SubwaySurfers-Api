@@ -8,6 +8,7 @@ RPC
 - [x] GetFriends
 - [x] GetInvites
 - [x] SendInvite
+- [x] GetFriendAndInvitesResponse
 - [x] AcceptInvite Empty Response
 - [x] CancelInvite Empty Response
 - [x] DeclineInvite Empty Response
