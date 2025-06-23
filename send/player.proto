@@ -22,7 +22,7 @@ message PlayerRequest {
 
 message UserInfo {
   string uuid = 1;
-  UserData userdata = 2;
+  UserData user_data = 2;
 }
 
 message CreatePlayerRequest {
@@ -51,11 +51,10 @@ message UserData {
   Time name_change_expires_at = 10;
 }
 
-message PlayerResponse {
-  UserData userdata = 1;
-}
+  message PlayerResponse {
+    UserData user_data = 1;
+  }
 
-message GetInvitesResponse {
   message InviteUserUuid {
     string uuid = 1;
   }
@@ -88,7 +87,7 @@ message SendInviteResponse {
     Time invited_at = 4;
   }
 
-  UserInvite userinvite = 1;
+  UserInvite user_invite = 1;
 }
 
 message GetFriendsResponse {
@@ -100,12 +99,6 @@ message UpdatePlayerRequest {
   string name = 1;
   int32 level = 2;
   int64 highscore = 3;
-
-  message Metadata {
-    string selected_character = 1;
-    string selected_board_upgrades = 2;
-    string selected_board = 3;
-  }
 
   map<string, string> metadata = 4;
 }

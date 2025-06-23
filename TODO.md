@@ -37,13 +37,12 @@ Json
 - [ ] websdk
 - [x] redeem
 
-https://apidocs.helpshift.com/
-
+<https://apidocs.helpshift.com/>
 
 Tools \
-https://grpc.io/docs/guides/status-codes \
-https://protogen.marcgravell.com \
-https://good.tools/protobuf-decoder \
-https://protobuf-decoder.netlify.app \
-https://github.com/sandermvanvliet/ProtobufDecoder \
-https://github.com/mildsunrise/protobuf-inspector \
+<https://grpc.io/docs/guides/status-codes> \
+<https://protogen.marcgravell.com> \
+<https://good.tools/protobuf-decoder> \
+<https://protobuf-decoder.netlify.app> \
+<https://github.com/sandermvanvliet/ProtobufDecoder> \
+<https://github.com/mildsunrise/protobuf-inspector>

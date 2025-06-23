@@ -308,11 +308,11 @@ def update_player():
 
     msg_len = int.from_bytes(raw[1:5], "big")
     grpc_payload = raw[5 : 5 + msg_len]
+    # print("payload bytes:", resp.SerializeToString().hex())
 
     try:
         resp = PlayerResponse()
         resp.ParseFromString(grpc_payload)
-        # print("payload bytes:", resp.SerializeToString().hex())
         print(resp)
     except Exception as e:
         print("Failed to parse response:", e)
@@ -353,7 +353,7 @@ def get_friends():
 
     msg_len = int.from_bytes(raw[1:5], "big")
     grpc_payload = raw[5 : 5 + msg_len]
-    # print("gRPC payload (hex):", grpc_payload.hex())
+    print("gRPC payload (hex):", grpc_payload.hex())
 
     grpc_status = r.headers.get("grpc-status", "0")
     if grpc_status != "0":
@@ -497,15 +497,14 @@ def send_invite(playeruuid: str):
     if status == "0":
         print("Invite sent successfully")
     elif status == "8":
-        print("INVITES_THROTTLED/user cant have more invites")
+        print("INVITES_THROTTLED/INVITE_QUEUE_FULL")
         return
 
     raw = r.content
-
     if len(raw) < 5:
         print("Response too short")
         return
-    elif content := r.content:
+    elif r.content:
         if "text/html;" in r.headers.get("Content-Type"):
             print("Content is html")
             return
@@ -658,7 +657,6 @@ def remove_friend(playeruuid: str):
             content=body,
         )
 
-    # Check for gRPC success
     grpc_status = r.headers.get("grpc-status", "0")
     if grpc_status != "0":
         print(f"Removing friend failed. gRPC status: {grpc_status}")
@@ -691,7 +689,7 @@ def get_relationship(playeruuid: str):
     if len(raw) < 5:
         print("Response too short")
         return
-    elif content := r.content:
+    elif r.content:
         if "text/html;" in r.headers.get("Content-Type"):
             print("Content is html")
             return
@@ -729,7 +727,6 @@ def get_wallet():
         )
 
     raw = r.content
-
     if len(raw) < 5:
         print("Response too short")
         return

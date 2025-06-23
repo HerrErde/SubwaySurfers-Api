@@ -148,7 +148,7 @@ def get_player_by_tag(playertag: str, authtoken: str):
     try:
         resp = PlayerResponse()
         resp.ParseFromString(grpc_payload)
-        uuid = resp.userdata.uuid
+        uuid = resp.user_data.uuid
         return True, uuid
     except Exception as e:
         print("Failed to parse response:", e)

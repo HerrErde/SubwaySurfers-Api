@@ -24,7 +24,7 @@ Make sure to keep your identityToken refreshed and the everywhere the same.
   <summary>PlayerResponse</summary>
 
 ```json
-userdata {
+user_data {
   name: "StylingDino"
   tag: "BY1BJH84CVHHIX"
   level: 1
@@ -205,7 +205,7 @@ received_invites {
   }
   user_info {
     uuid: "01972f8a-4c30-723d-8d67-0ee30cf56335"
-    userdata {
+    user_data {
       name: "FunnyPins"
       tag: "7VY5K26493SHYG"
       level: 4
@@ -252,7 +252,7 @@ sent_invites {
   action_uuid: "0197590f-df48-7105-b384-4a0c20be6a3e"
   user_info {
     uuid: "0197554e-7bd0-7061-818a-32f59e3254f5"
-    userdata {
+    user_data {
       name: "YoungIzzy"
       tag: "5SVU2KM3UPCUH7"
       level: 1
@@ -365,7 +365,7 @@ userinvite {
   action_uuid: "01972f9b-2f74-74fb-9625-6759350ee44c"
   invited {
     uuid: "01972f81-3f5b-73ec-99ea-fa9c481ff4a6"
-    userdata {
+    user_data {
       name: "CoolNikos"
       tag: "5NWP2S8G5AP5ZU"
       created_at {
@@ -381,7 +381,7 @@ userinvite {
   }
   inviter {
     uuid: "01972f99-79aa-7149-9561-706998e2c455"
-    userdata {
+    user_data {
       name: "CoolNikos"
       tag: "115ULUMIQLQX45"
       created_at {
