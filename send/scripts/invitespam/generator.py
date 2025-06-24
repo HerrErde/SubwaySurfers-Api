@@ -6,29 +6,18 @@ import requests
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-with open(os.path.join(BASE_DIR, "names.json")) as f:
-    NAMES_DATA = json.load(f)
-
-with open(os.path.join(BASE_DIR, "boards_data.json")) as f:
-    BOARDS = json.load(f)
-
-with open(os.path.join(BASE_DIR, "characters_data.json")) as f:
-    CHARACTERS = json.load(f)
-
-with open(os.path.join(BASE_DIR, "playerprofile_data.json")) as f:
-    PROFILE_DATA = json.load(f)
-
-with open(os.path.join(BASE_DIR, "country_iso.txt")) as f:
-    ISO_CODES = [line.strip() for line in f if line.strip()]
-
 
 def generate_name():
+    with open(os.path.join(BASE_DIR, "names.json")) as f:
+        NAMES_DATA = json.load(f)
     return (
         f"{random.choice(NAMES_DATA['adjectives'])}{random.choice(NAMES_DATA['names'])}"
     )
 
 
 def choose_board():
+    with open(os.path.join(BASE_DIR, "boards_data.json")) as f:
+        BOARDS = json.load(f)
     board = random.choice(BOARDS)
     board_id = board["id"]
     upgrades = board.get("upgrades", [])
@@ -47,6 +36,8 @@ def choose_board():
 
 
 def choose_character():
+    with open(os.path.join(BASE_DIR, "characters_data.json")) as f:
+        CHARACTERS = json.load(f)
     character = random.choice(CHARACTERS)
     char_id = character["id"]
     outfits = character.get("outfits", [])
@@ -56,6 +47,8 @@ def choose_character():
 
 
 def choose_cosmetics():
+    with open(os.path.join(BASE_DIR, "playerprofile_data.json")) as f:
+        PROFILE_DATA = json.load(f)
     portraits = PROFILE_DATA.get("profilePortraits", ["default_portrait"])
     frames = PROFILE_DATA.get("profileFrames", ["default_frame"])
     backgrounds = PROFILE_DATA.get("profileBackgrounds", ["default_background"])
@@ -64,6 +57,8 @@ def choose_cosmetics():
 
 
 def choose_country():
+    with open(os.path.join(BASE_DIR, "country_iso.txt")) as f:
+        ISO_CODES = [line.strip() for line in f if line.strip()]
     return random.choice(ISO_CODES)
 
 

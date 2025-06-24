@@ -1,8 +1,7 @@
-import json
+import os
 import random
-import re
 from datetime import UTC, datetime
-from pathlib import Path
+from dotenv import load_dotenv
 
 import httpx
 from generator import *
@@ -12,10 +11,9 @@ from player_pb2 import (
     PlayerResponse,
 )
 
-uuid_pattern = re.compile(
-    r"\b[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}\b"
-)
-tag_pattern = re.compile(r"^[A-Z0-9]{14}$")
+load_dotenv()
+identityToken = str(os.environ.get("IDENTITYTOKEN", ""))
+
 
 api_url = "https://subway.prod.sybo.net"
 user_agent = "grpc-dotnet/2.63.0 (Mono Unity; CLR 4.0.30319.17020; netstandard2.0; arm64) com.kiloo.subwaysurf/3.46.9"
@@ -119,90 +117,6 @@ def update_player(authtoken, name):
     return resp
 
 
-def get_player_by_tag(playertag: str, authtoken: str):
-    url = api_url + "/rpc/player.ext.v1.PrivateService/GetPlayerByTag"
-    encoded_playertag = playertag.encode("utf-8")
-    protobuf_payload = (
-        b"\x0a" + len(encoded_playertag).to_bytes(1, "big") + encoded_playertag
-    )
-
-    prefix = b"\x00" + len(protobuf_payload).to_bytes(4, "big")
-    body = prefix + protobuf_payload
-
-    headers = {
-        "User-Agent": user_agent,
-        "grpc-accept-encoding": "identity,gzip",
-        "Authorization": f"Bearer {authtoken}",
-        "Content-Type": "application/grpc-web",
-    }
-
-    with httpx.Client(http2=True) as client:
-        r = client.post(
-            url,
-            headers=headers,
-            content=body,
-        )
-
-    raw = r.content
-
-    if len(raw) < 5:
-        print("Response too short")
-        return False, None
-
-    msg_len = int.from_bytes(raw[1:5], "big")
-    grpc_payload = raw[5 : 5 + msg_len]
-
-    try:
-        resp = PlayerResponse()
-        resp.ParseFromString(grpc_payload)
-        uuid = resp.user_data.uuid
-        return True, uuid
-    except Exception as e:
-        print("Failed to parse response:", e)
-        print("gRPC payload (hex):", grpc_payload.hex())
-        return False, None
-
-
-def get_player_by_id(playerid: str):
-    url = api_url + "/rpc/player.ext.v1.PrivateService/GetPlayerById"
-
-    encoded_playerid = playerid.encode("utf-8")
-    protobuf_payload = (
-        b"\x0a" + len(encoded_playerid).to_bytes(1, "big") + encoded_playerid
-    )
-
-    prefix = b"\x00" + len(protobuf_payload).to_bytes(4, "big")
-    body = prefix + protobuf_payload
-
-    headers = {
-        "User-Agent": user_agent,
-        "grpc-accept-encoding": "identity,gzip",
-        "Authorization": f"Bearer {authtoken}",
-        "Content-Type": "application/grpc-web",
-    }
-
-    with httpx.Client(http2=True) as client:
-        r = client.post(
-            url,
-            headers=headers,
-            content=body,
-        )
-
-    raw = r.content
-
-    if len(raw) < 5:
-        print("Response too short")
-        return
-
-    msg_len = int.from_bytes(raw[1:5], "big")
-    grpc_payload = raw[5 : 5 + msg_len]
-
-    resp = PlayerResponse()
-    resp.ParseFromString(grpc_payload)
-    uuid = resp.user_data.uuid
-    return True, uuid
-
-
 def send_invite(playeruuid, authtoken):
     url = api_url + "/rpc/friends.ext.v1.PrivateService/SendInvite"
     encoded = playeruuid.encode("utf-8")
@@ -220,12 +134,7 @@ def send_invite(playeruuid, authtoken):
     return True
 
 
-def main(friend_tag: str, amount: int):
-    if not (tag_pattern.match(friend_tag) or uuid_pattern.match(friend_tag)):
-        raise ValueError("Invalid player tag format.")
-
-    is_uuid = uuid_pattern.match(friend_tag) is not None
-    created = []
+def main(amount: int):
     remaining = amount
 
     download_missing_files()
@@ -235,31 +144,13 @@ def main(friend_tag: str, amount: int):
             name = generate_name()
             auth = auth_register()
             authtoken = auth.get("idToken")
-            refresh_token = auth.get("refreshToken")
 
             player_resp = create_player(authtoken, name)
+            playeruuid = player_resp.user_data.uuid
             update_player(authtoken, name)
 
-            if is_uuid:
-                playeruuid = friend_tag
-            else:
-                success, playeruuid = get_player_by_tag(friend_tag, authtoken)
-                if not success:
-                    print(f"Failed to get UUID for tag {friend_tag}")
-                    continue
+            send_invite(playeruuid, identityToken)
 
-            success = send_invite(playeruuid, authtoken)
-
-            created.append(
-                {
-                    "name": name,
-                    "uuid": playeruuid,
-                    "created": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
-                    "idToken": authtoken,
-                    "refreshToken": refresh_token,
-                    "friendInviteSent": success,
-                }
-            )
         except Exception as e:
             print(f"Error: {e}")
             continue
@@ -267,19 +158,16 @@ def main(friend_tag: str, amount: int):
         remaining -= 1
         print(f"Remaining: {remaining}")
 
-    # print(json.dumps(created, indent=2))
-
 
 if __name__ == "__main__":
     import sys
 
-    if len(sys.argv) != 3:
-        print("Usage: python script.py <player_tag/player_uuid> <amount>")
+    if len(sys.argv) != 2:
+        print("Usage: python script.py <amount>")
         exit(1)
-    friend_tag = sys.argv[1]
-    amount = int(sys.argv[2])
+    amount = int(sys.argv[1])
     try:
-        main(friend_tag, amount)
+        main(amount)
     except KeyboardInterrupt:
         print("\nExiting on user request.")
         exit(0)

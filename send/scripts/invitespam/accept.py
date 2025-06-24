@@ -2,7 +2,7 @@ import os
 
 import httpx
 from dotenv import load_dotenv
-from player_pb2 import PlayerResponse, StatusResponse
+from player_pb2 import PlayerResponse, StatusResponse, Empty
 
 load_dotenv()
 identityToken = str(os.environ.get("IDENTITYTOKEN", ""))
@@ -20,9 +20,9 @@ headers = {
 
 def get_invites():
     url = f"{api_url}/rpc/friends.ext.v1.PrivateService/GetInvites"
-    protobuf_payload = b""
-    prefix = b"\x00" + len(protobuf_payload).to_bytes(4, "big")
-    body = prefix + protobuf_payload
+    msg = Empty()
+    payload = msg.SerializeToString()
+    body = b"\x00" + len(payload).to_bytes(4, "big") + payload
 
     with httpx.Client(http2=True) as client:
         r = client.post(url, headers=headers, content=body)

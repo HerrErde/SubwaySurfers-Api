@@ -19,6 +19,7 @@ You can interact with the internal api that is used by the SubwaySurfers game ap
 ## Setup and Usage
 
 ```bash
+pip install -r requirements.txt
 cd send
 protoc --python_out=. player.proto
 ```

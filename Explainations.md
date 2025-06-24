@@ -18,7 +18,7 @@ All time values are in epoch time
 When refreshing a identity token but still making requests with the old token, it will seem to work just fine, but e.g. your game (with the now new refreshed token) will have no changes (send invite will only appear on the player with the token, not the new one). \
 Make sure to keep your identityToken refreshed and the everywhere the same.
 
-### Protobuf Body
+### Protobuf Bodys
 
 <details>
   <summary>PlayerResponse</summary>
@@ -131,6 +131,21 @@ user_data {
 
 </details>
 
+</details>
+  <summary>Quota</summary>
+
+```json
+quota  {
+  max_friends: 100
+  friend_count: 1
+  recieved_invite_count: 1
+  send_invite_count: 1
+  max_invites: 10
+}
+```
+
+<details>
+
 ### identity file
 
 The identity file contains a dictionary with the user dict which contains id, name, picture, links list
@@ -185,6 +200,11 @@ The max amount of Friends a User can have is 100 Friends.
 A user cant have more than 10 friend requests at the same time. \
 After that is reached, new friend requests will not be successful
 
+A user can send max 100 invites to other players. \
+The amount of invites you can send to players is bound to the amount of friends you have. \
+Friends + Send Invites = 100 \
+That means when you have 75 Friends ₘᵣ. ₚₒₚᵤₗₐᵣ... you can only send 25 invites to players
+
 A user's friend invite rate limit, is 2 accepted invites per user per 24 hours. \
 E.g. you can send a friend request to User A, they decline, then repeat a second time.
 On the third request you'll likely need to wait around 24 hours before being able to send a third invite to the same player. \
@@ -193,7 +213,7 @@ But you can still send 2 friend requests to User B.
 #### Get invites
 
 When requesting the list of recieved invites, you get a list of `invite` bodys with each body having an `action_uuid` with which you control actions like accept, reject and so on.
-The `user_uuid` that got the invite (your own), and a `PlayerResponse` body which contains the whole player metadata with uuid, and player details (game stats, collectables) and the quota with max_friends and max_invites, friend_count and invite_count
+The `user_uuid` that got the invite (your own), and a `PlayerResponse` body which contains the whole player metadata with uuid, and player details (game stats, collectables) and the quota with max_friends and max_invites, friend_count and recieved_invite_count
 
 <details>
 
@@ -238,7 +258,7 @@ received_invites {
 quota  {
   max_friends: 100
   friend_count: 1
-  invite_count: 1
+  recieved_invite_count: 1
   max_invites: 10
 }
 ```
@@ -341,13 +361,12 @@ When the invites list is empty, it will only show the quota
 quota  {
   max_friends: 100
   friend_count: 1
-  invite_count: 1
+  recieved_invite_count: 1
   max_invites: 10
 }
 ```
 
 </details>
-
 
 #### Get FriendsAndInvites
 
@@ -363,7 +382,7 @@ quota  {
 }
 ```
 
-Even when not send or not recieved a invite the data will still show, but empty except your own uuid 
+Even when not send or not recieved a invite the data will still show, but empty except your own uuid
 
 ```json
   recieved_uuid {
@@ -680,10 +699,10 @@ https://manifest.tower.sybo.net/v1.0/subway/3.44.2/android/s8B88pVbhzpKmvX6BV0u/
 https://manifest.tower.sybo.net/v1.0/subway/3.44.2/android/s8B88pVbhzpKmvX6BV0u/manifest.json
 ```
 
-
 ```
 https://manifest.tower.sybo.net/v1.0/{game}/{version}/{platform}/{secretToken}/manifest.json
 ```
+
 ### Gamedata
 
 It is possible to get the gamedata/tower files of the old depreciated method of extracting the apk gamefile or ipa gamefile, using from the manifest request contained `gamedata` value
@@ -1495,6 +1514,7 @@ the vendor_id is the same as in the `SYBO-Vendor-Id` in the header of all the ot
 which changes every version
 
 #### Analytics Core
+
 (3.47.0)
 
 com.sybo.bootstrap@2.0.20 \
@@ -1599,4 +1619,5 @@ For example, ecn_inventory send some inventory data, although this is quite unli
   ]
 }
 ```
+
 </details>

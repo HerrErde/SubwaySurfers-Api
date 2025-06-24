@@ -353,7 +353,7 @@ def get_friends():
 
     msg_len = int.from_bytes(raw[1:5], "big")
     grpc_payload = raw[5 : 5 + msg_len]
-    print("gRPC payload (hex):", grpc_payload.hex())
+    # print("gRPC payload (hex):", grpc_payload.hex())
 
     grpc_status = r.headers.get("grpc-status", "0")
     if grpc_status != "0":
