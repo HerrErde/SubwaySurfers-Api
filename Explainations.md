@@ -353,6 +353,23 @@ quota  {
 
 This will get you, you guessed right, your Friends AND Invites
 
+```json
+quota  {
+  max_friends: 100
+  friend_count: 1
+  recieved_invite_count: 1
+  send_invite_count: 1
+  max_invites: 10
+}
+```
+
+Even when not send or not recieved a invite the data will still show, but empty except your own uuid 
+
+```json
+  recieved_uuid {
+    user_uuid: "0197a0a6-9373-7e8c-b74b-6c55ebc1106b"
+  }
+```
 
 #### Sending Friend Request
 

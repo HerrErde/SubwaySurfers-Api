@@ -12,7 +12,8 @@ message Time {
 message InviteQuota {
   uint32 max_friends = 1;
   uint32 friend_count = 2;
-  uint32 invite_count = 4;
+  uint32 send_invite_count = 3;
+  uint32 recieved_invite_count = 4;
   uint32 max_invites = 5;
 }
 
@@ -55,23 +56,23 @@ message UserData {
     UserData user_data = 1;
   }
 
-  message InviteUserUuid {
-    string uuid = 1;
-  }
+message InviteUserUuid { // The user the invite is sent to
+  string user_uuid = 1;
+}
 
-  message ReceivedInvite {
-    string action_uuid = 1;
-    InviteUserUuid user_uuid = 2;
-    UserInfo user_info = 3;
-    Time invited_at = 4;
-  }
+message ReceivedInvite {
+  string action_uuid = 1;
+  InviteUserUuid recieved_uuid = 2;
+  UserInfo user_info = 3;
+  Time invited_at = 4;
+}
 
-  message SendInvite {
-    string action_uuid = 1;
-    UserInfo user_info = 2;
-    InviteUserUuid user_uuid = 3;
-    Time invited_at = 4;
-  }
+message SendInvite {
+  string action_uuid = 1;
+  UserInfo user_info = 2;
+  InviteUserUuid recieved_uuid = 3;
+  Time invited_at = 4;
+}
 
 message GetInvitesResponse {
   repeated ReceivedInvite received_invites = 1; // received invites
@@ -118,14 +119,8 @@ message GetWalletResponse {
 }
 
 message GetFriendAndInvitesResponse {
-  message Invites {
-    string action_uuid = 1;
-    InviteUserUuid user_uuid = 2;
-    repeated ReceivedInvite received_invites = 3;
-    repeated SendInvite sent_invites = 4;
-  }
-
   repeated UserInfo friends = 1;
-  Invites invites = 2;
+  repeated ReceivedInvite received_invites = 2;
+  repeated SendInvite sent_invites = 3;
   InviteQuota quota = 4;
 }
