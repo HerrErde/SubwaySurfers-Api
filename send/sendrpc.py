@@ -743,6 +743,48 @@ def get_wallet():
         print("gRPC payload (hex):", grpc_payload.hex())
 
 
+def get_energies():
+    url = api_url + "/rpc/energy.ext.v1.PrivateService/GetEnergies"
+
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {identityToken}",
+    }
+
+    body = {}
+
+    with httpx.Client(http2=True) as client:
+        r = client.post(url, headers=headers, json=body)
+
+    try:
+        print(r.json())
+    except Exception as e:
+        print("Failed to get response:", e)
+
+
+def init_energy(kindId: str):
+    url = api_url + "/rpc/energy.ext.v1.PrivateService/InitializeEnergy"
+
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {identityToken}",
+    }
+
+    body = {"kindId": kindId}
+
+    with httpx.Client(http2=True) as client:
+        r = client.post(
+            url,
+            headers=headers,
+            json=body,
+        )
+
+    try:
+        print(r.json())
+    except Exception as e:
+        print("Failed to get response:", e)
+
+
 # get_player_by_tag("N99635VZB9NFPD")
 # get_player_by_id("fca24390-4e4e-4994-a02a-3aab323129a2")
 # create_player()
@@ -758,3 +800,5 @@ def get_wallet():
 # remove_friend("0196d7d9-6632-7267-a1be-df82225311a8")
 # get_relationship("0196ea6a-b6e1-7293-8576-260bd1bb294b")
 # get_wallet()
+# get_energies()
+# init_energy("0197d668-9dba-7e2d-bd8b-b7ab77a57bfa")

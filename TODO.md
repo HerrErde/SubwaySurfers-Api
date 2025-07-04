@@ -15,6 +15,8 @@ RPC
 - [x] RemoveFriend Empty Response
 - [x] GetRelationship
 - [x] GetWallet
+- [x] InitializeEnergy
+- [x] GetEnergies
 
 Json
 
@@ -36,6 +38,8 @@ Json
 - [x] profile
 - [ ] websdk
 - [x] redeem
+- [x] daily_challenge
+- [x] challenge
 
 <https://apidocs.helpshift.com/>
 

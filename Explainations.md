@@ -2,8 +2,10 @@
 
 ## General Notes
 
-All knowledge is for versions 3.47.0 \
-Changes can happen in future versions
+All knowledge is for versions `3.48.5`
+
+> [!WARNING]
+> Changes are expected to happen
 
 grpc-status-details-bin content is base64
 
@@ -131,7 +133,7 @@ user_data {
 
 </details>
 
-</details>
+<details>
   <summary>Quota</summary>
 
 ```json
@@ -507,37 +509,130 @@ walletdata {
 }
 ```
 
+### Init Energy
+
+> [!WARNING]
+> This will most likely change until the next update
+
+Despite that they are in the `/rpc/` endpoints, they are able to be send and receive json
+
+When a _Energie_ was initialized (added), it will return the _Energie_ with the used uuid, a `value` and `regenCap`and the time it was updated
+
+still unknown where this uuid is from, but it seems like its season dependent
+This request happends after the _GetWallet_ request
+
+When setting the _Energie_
+
+```json
+{
+  "energy": {
+    "kindId": "0197780a-77bc-7bb8-bf9b-687fa58a53c0",
+    "value": 3,
+    "regenCap": 3,
+    "updatedAt": "2025-07-04T16:43:31.298610Z"
+  }
+}
+```
+
+When not using a valid uuid
+
+```json
+{
+  "code": "invalid_argument",
+  "message": "bad request",
+  "details": [
+    {
+      "type": "google.rpc.BadRequest",
+      "value": "CiUKB2tpbmRfaWQSGnZhbHVlIG11c3QgYmUgYSB2YWxpZCBVVUlE",
+      "debug": {
+        "fieldViolations": [
+          { "field": "kind_id", "description": "value must be a valid UUID" }
+        ]
+      }
+    }
+  ]
+}
+```
+
+When a uuid but found
+
+```json
+{ "code": "not_found", "message": "request failed" }
+```
+
+When applying the same uuid again
+
+```json
+{ "code": "already_exists", "message": "request failed" }
+```
+
+### Get Energies
+
+When no energie is set
+
+```json
+{ "energies": {} }
+```
+
+```json
+{
+  "energies": {
+    "0197780a-77bc-7bb8-bf9b-687fa58a53c0": {
+      "kindId": "0197780a-77bc-7bb8-bf9b-687fa58a53c0",
+      "value": 3,
+      "regenCap": 3,
+      "updatedAt": "2025-07-04T16:43:31.298610Z"
+    }
+  }
+}
+```
+
+When the _Energie_ was updated, it will return the same body as above
+
+```json
+{
+  "energies": {
+    "0197780a-77bc-7bb8-bf9b-687fa58a53c0": {
+      "kindId": "0197780a-77bc-7bb8-bf9b-687fa58a53c0",
+      "value": 3,
+      "regenCap": 3,
+      "updatedAt": "2025-07-04T16:43:31.298610Z"
+    }
+  }
+}
+```
+
 ### update player
 
 Update fields
 
 Get all valid values [HerrErde/subway-source](https://github.com/HerrErde/subway-source)
 
-| Id                                 | Type   | Limit                                              | Special                                                                                                                                                       |
-| ---------------------------------- | :----- | -------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- | --- |
-| name                               | string | 2-15 characters, only alphabet letters, no numeric | 604800 seconds (7 days) regex: `^[a-zA-Z]+$`                                                                                                                  |     |
-| level                              | int    | 100                                                |                                                                                                                                                               |
-| highscore                          | int    | 214748364<u>6</u>                                  | 214748364<u>7</u> is the int32 limit, also just -1                                                                                                            |
-| stat_total_visited_destinations    | int    | 49 characters                                      |                                                                                                                                                               |
-| stat_total_games                   | int    | 49 characters                                      | Once set, [this value should only be increased](#stat_total_games_error) for details                                                                          |     |
-| stat_owned_characters              | int    | 49 characters characters                           |                                                                                                                                                               |
-| stat_owned_characters_outfits      | int    | 49 characters characters                           |                                                                                                                                                               |
-| stat_owned_boards                  | int    | 49 characters characters                           |                                                                                                                                                               |
-| stat_owned_boards_upgrades         | int    | 49 characters characters                           |                                                                                                                                                               |
-| selected_portrait                  | string | 49 characters characters                           |                                                                                                                                                               |
-| selected_frame                     | string | 49 characters characters                           |                                                                                                                                                               |
-| selected_country                   | string | 49 characters                                      | Only ISO 3166-1 alpha-2 codes (e.g., de, en, nl). Using other values (e.g., `test`) will display `countries.test.name` ([country_iso.txt](./country_iso.txt)) |
-| selected_character                 | string | 49 characters                                      | Must follow the format `character.Outfit` (e.g., `jake.darkOutfit`)                                                                                           |
-| selected_board_upgrades            | string | 49 characters                                      | Comma-separated list of upgrades (e.g., "default,trail")                                                                                                      |
-| selected_board                     | string | 49 characters                                      |                                                                                                                                                               |
-| selected_background                | string | 49 characters                                      |                                                                                                                                                               |
-| highscore_default                  | int    | 49 characters                                      |                                                                                                                                                               |
-| stat_achievements                  | int    | 49 characters                                      |                                                                                                                                                               |
-| stat_total_top_run_medals_bronze   | int    | 49 characters                                      |                                                                                                                                                               |
-| stat_total_top_run_medals_silver   | int    | 49 characters                                      |                                                                                                                                                               |
-| stat_total_top_run_medals_gold     | int    | 49 characters                                      |                                                                                                                                                               |
-| stat_total_top_run_medals_diamond  | int    | 49 characters                                      |                                                                                                                                                               |
-| stat_total_top_run_medals_champion | int    | 49 characters                                      |                                                                                                                                                               |
+| Id | Type | Limit | Special |
+|---|---|---|---|
+| name | string | 2-15 characters, only alphabet letters, no numeric | 604800 seconds (7 days) regex: `^[a-zA-Z]+$` |
+| level | int | 100 |  |
+| highscore | int | 2147483646 | 2147483647 is the int32 limit, also just -1 |
+| stat_total_visited_destinations | int | 49 characters |  |
+| stat_total_games | int | 49 characters | Once set, [this value should only be increased](#stat_total_games_error) for details |
+| stat_owned_characters | int | 49 characters characters |  |
+| stat_owned_characters_outfits | int | 49 characters characters |  |
+| stat_owned_boards | int | 49 characters characters |  |
+| stat_owned_boards_upgrades | int | 49 characters characters |  |
+| selected_portrait | string | 49 characters characters |  |
+| selected_frame | string | 49 characters characters |  |
+| selected_country | string | 49 characters | Only ISO 3166-1 alpha-2 codes (e.g., de, en, nl). Using other values (e.g., `test`) will display `countries.test.name` ([country_iso.txt](./country_iso.txt)) |
+| selected_character | string | 49 characters | Must follow the format `character.Outfit` (e.g., `jake.darkOutfit`) |
+| selected_board_upgrades | string | 49 characters | Comma-separated list of upgrades (e.g., "default,trail") |
+| selected_board | string | 49 characters |  |
+| selected_background | string | 49 characters |  |
+| highscore_default | int | 49 characters |  |
+| stat_achievements | int | 49 characters |  |
+| stat_total_top_run_medals_bronze | int | 49 characters |  |
+| stat_total_top_run_medals_silver | int | 49 characters |  |
+| stat_total_top_run_medals_gold | int | 49 characters |  |
+| stat_total_top_run_medals_diamond | int | 49 characters |  |
+| stat_total_top_run_medals_champion | int | 49 characters |  |
 
 all values inside the `metadata` dict have to be set in quotes even when they are integers e.g. \
 stat_total_visited_destinations: "1" \
@@ -782,6 +877,126 @@ it will only delete your `player` but not your `account`, that means you can jus
   }
 }
 ```
+
+### Get Daily Challenge
+
+This request is made when running not normal but via the Daily High Score Event
+
+The response
+
+<details>
+
+```json
+{
+  "group": {
+    "start": "2025-07-04T11:22:00Z",
+    "end": "2025-07-05T11:22:00Z",
+    "players": [
+      {
+        "uid": "00d2487c-8bc3-460d-aeb5-de8754878bd2",
+        "matchmakingValue": 6,
+        "name": "",
+        "picture": "",
+        "socialIds": [],
+        "metadata": [
+          { "key": "background", "value": "default_background" },
+          { "key": "frame", "value": "default_frame" },
+          { "key": "portrait", "value": "jake_portrait" },
+          { "key": "character", "value": "tricky.default" },
+          { "key": "board", "value": "default" },
+          { "key": "score", "value": "44333" }
+        ]
+      },
+      {
+        "uid": "01961538-d5d2-74f3-953a-d4e13fdffa51",
+        "matchmakingValue": 16,
+        "name": "",
+        "picture": "",
+        "socialIds": [],
+        "metadata": [
+          { "key": "background", "value": "default_background" },
+          { "key": "frame", "value": "default_frame" },
+          { "key": "portrait", "value": "missmaia_illustration_portrait" },
+          { "key": "character", "value": "jake.darkOutfit" },
+          { "key": "board", "value": "fanTastic" },
+          { "key": "score", "value": "170558" }
+        ]
+      },
+      trunicated 7x
+    ]
+  }
+}
+```
+
+</details>
+
+### Sent Daily Challenge
+
+This request is made when running not normal but via the Daily High Score Event
+
+No idea for what the `matchmakingStartValue` is for
+
+<details>
+
+```json
+{
+  "group": {
+    "start": "2025-07-04T11:22:00Z",
+    "end": "2025-07-05T11:22:00Z",
+    "players": [
+      {
+        "uid": "00d2487c-8bc3-460d-aeb5-de8754878bd2",
+        "matchmakingValue": 6,
+        "name": "",
+        "picture": "",
+        "socialIds": [],
+        "metadata": [
+          { "key": "score", "value": "44333" },
+          { "key": "background", "value": "default_background" },
+          { "key": "frame", "value": "default_frame" },
+          { "key": "portrait", "value": "jake_portrait" },
+          { "key": "character", "value": "tricky.default" },
+          { "key": "board", "value": "default" }
+        ]
+      },
+      {
+        "uid": "0193b9de-e911-7d30-92e5-17d4e1798ddc",
+        "matchmakingValue": 6,
+        "name": "",
+        "picture": "",
+        "socialIds": [],
+        "metadata": [
+          { "key": "portrait", "value": "jake_portrait" },
+          { "key": "character", "value": "tricky.default" },
+          { "key": "board", "value": "default" },
+          { "key": "score", "value": "95374" },
+          { "key": "background", "value": "default_background" },
+          { "key": "frame", "value": "default_frame" }
+        ]
+      },
+      trunicated 7x
+      {
+        "uid": "0197d683-d0f4-7563-bcc6-b285ff6fa1f5",
+        "matchmakingValue": 0,
+        "name": "",
+        "picture": "",
+        "socialIds": [],
+        "metadata": []
+      }
+    ]
+  }
+}
+```
+
+</details>
+
+When the request was already sent, it will return an error
+
+```json
+{ "error": "request failed", "kind": 6 }
+```
+
+When setting the challengeID to `daily_challenge_de`, you can only use the get_daily_challenge request with the challenge group for that country, here `nl`
 
 ### send tournament
 

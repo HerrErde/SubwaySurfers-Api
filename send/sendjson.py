@@ -665,6 +665,50 @@ def send_fbinstall():
         print(r.json())
 
 
+def get_daily_challenge(c: str = "en"):
+    url = api_url + f"/v2.0/challenge/daily_challenge_{c}/group"
+
+    with httpx.Client(http2=True) as client:
+        r = client.get(
+            url,
+            headers={
+                **headers,
+                "Authorization": f"Bearer {identityToken}",
+            },
+        )
+        print(r.status_code)
+        print(r.json())
+
+
+def get_challenge(
+    matchmakingStartValue: int,
+    gamedataHash: str,
+    challengeId: str,
+    matchmakingId: str,
+):
+    url = api_url + f"/v2.0/challenge/group"
+
+    body = {
+        "matchmakingStartValue": matchmakingStartValue,
+        "gamedataHash": gamedataHash,
+        "challengeID": challengeId,
+        "matchmakingId": matchmakingId,
+    }
+
+    with httpx.Client(http2=True) as client:
+        r = client.post(
+            url,
+            headers={
+                **headers,
+                "Authorization": f"Bearer {identityToken}",
+            },
+            json=body,
+        )
+
+        print(r.status_code)
+        print(r.json())
+
+
 # get_mail()
 # crosspromo()
 # auth_register()
@@ -686,4 +730,6 @@ def send_fbinstall():
 # get_servertime()
 # send_redeem("PrideFrame2025", 1)
 # send_websdk()
-send_fbinstall()
+# send_fbinstall()
+# get_daily_challenge("nl")
+# get_challenge(39,"70409a79f9500482a5075052a93f15be22fc1383","daily_challenge_de","dailyChallenge")
