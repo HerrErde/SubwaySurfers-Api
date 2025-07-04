@@ -1,4 +1,49 @@
-# Explainations
+# Explanations
+
+## Table of Contents
+
+- [Explanations](#explanations)
+  - [Table of Contents](#table-of-contents)
+  - [General Notes](#general-notes)
+    - [Expired identityToken](#expired-identitytoken)
+    - [Protobuf Bodies](#protobuf-bodies)
+    - [Identity File](#identity-file)
+  - [RPC](#rpc)
+    - [Friend Action](#friend-action)
+      - [Get invites](#get-invites)
+      - [Get FriendsAndInvites](#get-friendsandinvites)
+      - [Sending Friend Request](#sending-friend-request)
+      - [Cancel Friend Request](#cancel-friend-request)
+      - [Get Relationship](#get-relationship)
+    - [Get Player](#get-player)
+    - [Get Player by Tag](#get-player-by-tag)
+    - [Get Player by Id](#get-player-by-id)
+    - [Get Wallet](#get-wallet)
+    - [Init Energy](#init-energy)
+    - [Get Energies](#get-energies)
+    - [Update Player](#update-player)
+      - [Inputs](#inputs)
+      - [Name](#name)
+  - [Json](#json)
+    - [Register](#register)
+    - [Refresh](#refresh)
+    - [Manifest](#manifest)
+    - [Gamedata](#gamedata)
+    - [Media](#media)
+    - [Assets](#assets)
+    - [GDPR status](#gdpr-status)
+    - [GDPR delete](#gdpr-delete)
+    - [Get Daily Challenge](#get-daily-challenge)
+    - [Sent Daily Challenge](#sent-daily-challenge)
+    - [send tournament](#send-tournament)
+    - [get tournament](#get-tournament)
+    - [profile](#profile)
+    - [Analytics](#analytics)
+      - [Analytics Core](#analytics-core)
+    - [Deep Links](#deep-links)
+      - [Redeem](#redeem)
+  - [Other](#other)
+    - [Profile](#profile-1)
 
 ## General Notes
 
@@ -9,23 +54,31 @@ All knowledge is for versions `3.48.5`
 
 grpc-status-details-bin content is base64
 
-after registering a account, you'll have to create a player to use all the requests, else the account is 'empty' and cant make player actions
+After registering an account, you'll have to create a player to use all the requests; otherwise, the account is 'empty' and can't perform player actions
 
 You can only add abtesting to the account after adding crosspromo. This must be done in that order, else it will result in an error.
 
 All time values are in epoch time
+
+this is a player tag `BY1BJH84CVHHIX` \
+this is a player uuid `0197351b-ae06-7a3f-8576-0e3d5b95a280`
+
+sec means seconds \
+nsec means nanoseconds
+
+Some response bodies that contain repeating data or with minor changes will be truncated to avoid repetition.
 
 ### Expired identityToken
 
 When refreshing a identity token but still making requests with the old token, it will seem to work just fine, but e.g. your game (with the now new refreshed token) will have no changes (send invite will only appear on the player with the token, not the new one). \
 Make sure to keep your identityToken refreshed and the everywhere the same.
 
-### Protobuf Bodys
+### Protobuf Bodies
 
 <details>
   <summary>PlayerResponse</summary>
 
-```json
+```
 user_data {
   name: "StylingDino"
   tag: "BY1BJH84CVHHIX"
@@ -136,25 +189,25 @@ user_data {
 <details>
   <summary>Quota</summary>
 
-```json
+```
 quota  {
   max_friends: 100
   friend_count: 1
-  recieved_invite_count: 1
+  received_invite_count: 1
   send_invite_count: 1
   max_invites: 10
 }
 ```
 
-<details>
+</details>
 
-### identity file
+### Identity File
 
 The identity file contains a dictionary with the user dict which contains id, name, picture, links list
 and a refresh and identityToken dict that both contain a `token` value. \
-Also a `expiresAt` that will tell the app when to refresh the token.
+A `expiresAt` value will tell the app when to refresh the token is expired.
 
-all tokens are have 7 days ttl (time to live)
+All tokens are have 7 days ttl (time to live)
 
 ```json
 {
@@ -176,7 +229,7 @@ all tokens are have 7 days ttl (time to live)
 
 jwt (striped signatures)
 
-identity token
+Identity token
 
 ```json
 {"alg":"PS256","typ":"JWT"}
@@ -199,27 +252,27 @@ refresh token
 
 The max amount of Friends a User can have is 100 Friends.
 
-A user cant have more than 10 friend requests at the same time. \
-After that is reached, new friend requests will not be successful
+A user can't have more than 10 friend requests at the same time. \
+After limit has been reached, new friend requests will not be successful.
 
 A user can send max 100 invites to other players. \
 The amount of invites you can send to players is bound to the amount of friends you have. \
-Friends + Send Invites = 100 \
-That means when you have 75 Friends ₘᵣ. ₚₒₚᵤₗₐᵣ... you can only send 25 invites to players
+100 = Friends + Send Invites \
+That means when you have 75 Friends ₘᵣ. ₚₒₚᵤₗₐᵣ... you can only send another 25 invites to players
 
 A user's friend invite rate limit, is 2 accepted invites per user per 24 hours. \
-E.g. you can send a friend request to User A, they decline, then repeat a second time.
+e.g. you can send a friend request to User A, they decline, then repeat a second time.
 On the third request you'll likely need to wait around 24 hours before being able to send a third invite to the same player. \
-But you can still send 2 friend requests to User B.
+You will still be able to send 2 friend requests to User B.
 
 #### Get invites
 
-When requesting the list of recieved invites, you get a list of `invite` bodys with each body having an `action_uuid` with which you control actions like accept, reject and so on.
-The `user_uuid` that got the invite (your own), and a `PlayerResponse` body which contains the whole player metadata with uuid, and player details (game stats, collectables) and the quota with max_friends and max_invites, friend_count and recieved_invite_count
+When requesting the list of received invites, you get a list of `invite` bodies with each body having an `action_uuid` with which you control actions like accept, reject and so on.
+The `user_uuid` that got the invite (your own), and a `PlayerResponse` body which contains the whole player metadata with uuid, and player details (game stats, collectables) and the `quota` with `max_friends`, `max_invites`, friend_count and `received_invite_count`
 
 <details>
 
-```json
+```
 received_invites {
   action_uuid: "01972f8a-5024-7218-bb95-73583e92edb8"
   user_uuid {
@@ -236,7 +289,7 @@ received_invites {
         key: "stat_total_visited_destinations"
         value: "14"
       }
-      trunicated metadata...
+      truncated metadata...
       created_at {
         sec: 1748849282
         nsec: 424557000
@@ -260,7 +313,7 @@ received_invites {
 quota  {
   max_friends: 100
   friend_count: 1
-  recieved_invite_count: 1
+  received_invite_count: 1
   max_invites: 10
 }
 ```
@@ -269,7 +322,7 @@ quota  {
 
 <details>
 
-```json
+```
 sent_invites {
   action_uuid: "0197590f-df48-7105-b384-4a0c20be6a3e"
   user_info {
@@ -359,11 +412,11 @@ When the invites list is empty, it will only show the quota
 
 <details>
 
-```json
+```
 quota  {
   max_friends: 100
   friend_count: 1
-  recieved_invite_count: 1
+  received_invite_count: 1
   max_invites: 10
 }
 ```
@@ -374,31 +427,31 @@ quota  {
 
 This will get you, you guessed right, your Friends AND Invites
 
-```json
+```
 quota  {
   max_friends: 100
   friend_count: 1
-  recieved_invite_count: 1
+  received_invite_count: 1
   send_invite_count: 1
   max_invites: 10
 }
 ```
 
-Even when not send or not recieved a invite the data will still show, but empty except your own uuid
+Even when not send or not received an invite, the data will still show, but empty, except your own uuid.
 
-```json
-  recieved_uuid {
+```
+  received_uuid {
     user_uuid: "0197a0a6-9373-7e8c-b74b-6c55ebc1106b"
   }
 ```
 
 #### Sending Friend Request
 
-When sending a friends request to a user it will show the `action_uuid`, the trunicated inviter userinfo (without metadata details) and invited user info
+When sending a friends request to a user it will show the `action_uuid`, the truncated inviter userinfo (without metadata details) and invited user info
 
 <details>
 
-```json
+```
 userinvite {
   action_uuid: "01972f9b-2f74-74fb-9625-6759350ee44c"
   invited {
@@ -444,63 +497,57 @@ userinvite {
 
 #### Cancel Friend Request
 
-When wanting to cancel send a friend Request, you have to take the `action_uuid` from the invite or the invites list response and then use it to cancel the invite
-
-The `action_uuid` is different per player and current friend request and cant be replaced by the original player uuid \
+To cancel a send pending friend request, use the `action_uuid` from the invite or the invites list response. This `action_uuid` is unique for each player and friend request, and cannot be replaced by the original player UUID.
 
 #### Get Relationship
 
-GetRelationship returns the relationship status between the user and another player:
+`GetRelationship` returns the relationship status between the user and another player:
 
 Status Codes:
-1 - The player is a friend
-2 - The other player has sent a friend request to the user
-3 - The user has sent a friend request to the other player
-4 - No friend relationship exists
 
-```json
+1. The player is a friend
+2. The other player has sent a friend request to the user
+3. The user has sent a friend request to the other player
+4. No friend relationship exists
+
+The relationship status
+
+```
 status {
   status: 2
 }
 ```
 
-`action_uuid` wont work
-
 ### Get Player
 
-This will get the own player
+This will get data of the own player \
+It will just return the `PlayerResponse` body
 
-it will just retun the `PlayerResponse` body
+The fields do not show up directly after generating the Player \
+All metadata fields will not exist until they are set with UpdatePlayer
 
-The fields do not show up directly after generating the Player
-
-all metadata fields will not exist until they are created with UpdatePlayer
-
-also so do not `update_player_at`, `name_changed_at` or `name_change_expires_at` \
-`name_changed_at` and `name_changed_expires_at` only show when the name is changed from the name the player was creatd with
+Also, the `update_player_at`, `name_change_expires_at` and`name_changed_at` only show when the name is changed from the name the player was created with to a new one.
 
 ### Get Player by Tag
 
-This gets a player by their invite Tag
-
-it returns the `PlayerResponse` body
+This gets a player by their invite Tag \
+It returns the `PlayerResponse` body
 
 ### Get Player by Id
 
-This gets a player by their uuid
-
-it returns the `PlayerResponse` body
+This gets a player by their uuid \
+It returns the `PlayerResponse` body
 
 to get the data from a player via their uuid
-you need first the uuid of the player which you can get via the tag or your own from the auth/subway-prod/identity file, the `id` field
+you need first the uuid of the player which you can get via the tag (invite id) or your own from the auth/subway-prod/identity file, the `id` field
 
-it is not possible to get the data via a `action_uuid`, it will result in an error
+It is not possible to get the data via a `action_uuid`, it will result in an error
 
 ### Get Wallet
 
 The Get Wallet request outputs the time the wallet was last updated (probably)
 
-```json
+```
 walletdata {
   wallet_last_save_at {
     sec: 1748426414
@@ -511,17 +558,14 @@ walletdata {
 
 ### Init Energy
 
-> [!WARNING]
-> This will most likely change until the next update
+Despite that they are in the `/rpc/` endpoints, they are able to be send and receive json.
 
-Despite that they are in the `/rpc/` endpoints, they are able to be send and receive json
+When a _Energie_ was initialized (added), it will return the _Energie_ with the used uuid, a `value` and `regenCap`and the time it was updated.
 
-When a _Energie_ was initialized (added), it will return the _Energie_ with the used uuid, a `value` and `regenCap`and the time it was updated
-
-still unknown where this uuid is from, but it seems like its season dependent
+It is unknown where this uuid is from, but it seems like its season dependent \
 This request happends after the _GetWallet_ request
 
-When setting the _Energie_
+**When setting the _Energie_**
 
 ```json
 {
@@ -534,7 +578,7 @@ When setting the _Energie_
 }
 ```
 
-When not using a valid uuid
+**When not using a valid uuid**
 
 ```json
 {
@@ -554,13 +598,13 @@ When not using a valid uuid
 }
 ```
 
-When a uuid but found
+**When a uuid was found**
 
 ```json
 { "code": "not_found", "message": "request failed" }
 ```
 
-When applying the same uuid again
+**When applying the same uuid again**
 
 ```json
 { "code": "already_exists", "message": "request failed" }
@@ -568,26 +612,13 @@ When applying the same uuid again
 
 ### Get Energies
 
-When no energie is set
+**When no energie is set**
 
 ```json
 { "energies": {} }
 ```
 
-```json
-{
-  "energies": {
-    "0197780a-77bc-7bb8-bf9b-687fa58a53c0": {
-      "kindId": "0197780a-77bc-7bb8-bf9b-687fa58a53c0",
-      "value": 3,
-      "regenCap": 3,
-      "updatedAt": "2025-07-04T16:43:31.298610Z"
-    }
-  }
-}
-```
-
-When the _Energie_ was updated, it will return the same body as above
+**Default Response**
 
 ```json
 {
@@ -602,7 +633,7 @@ When the _Energie_ was updated, it will return the same body as above
 }
 ```
 
-### update player
+### Update Player
 
 Update fields
 
@@ -615,12 +646,12 @@ Get all valid values [HerrErde/subway-source](https://github.com/HerrErde/subway
 | highscore | int | 2147483646 | 2147483647 is the int32 limit, also just -1 |
 | stat_total_visited_destinations | int | 49 characters |  |
 | stat_total_games | int | 49 characters | Once set, [this value should only be increased](#stat_total_games_error) for details |
-| stat_owned_characters | int | 49 characters characters |  |
-| stat_owned_characters_outfits | int | 49 characters characters |  |
-| stat_owned_boards | int | 49 characters characters |  |
-| stat_owned_boards_upgrades | int | 49 characters characters |  |
-| selected_portrait | string | 49 characters characters |  |
-| selected_frame | string | 49 characters characters |  |
+| stat_owned_characters | int | 49 characters |  |
+| stat_owned_characters_outfits | int | 49 characters |  |
+| stat_owned_boards | int | 49 characters |  |
+| stat_owned_boards_upgrades | int | 49 characters |  |
+| selected_portrait | string | 49 characters |  |
+| selected_frame | string | 49 characters |  |
 | selected_country | string | 49 characters | Only ISO 3166-1 alpha-2 codes (e.g., de, en, nl). Using other values (e.g., `test`) will display `countries.test.name` ([country_iso.txt](./country_iso.txt)) |
 | selected_character | string | 49 characters | Must follow the format `character.Outfit` (e.g., `jake.darkOutfit`) |
 | selected_board_upgrades | string | 49 characters | Comma-separated list of upgrades (e.g., "default,trail") |
@@ -640,32 +671,36 @@ all values will allow strings but the values will then not show up in the the ap
 
 when setting the key to value of 50 the error will say that the metadata values have a limit of 50 characters, which seems wrong, only 49 works
 
-you can still try to apply values out of the specified range but it will 1. return an error or 2. will just return the unmodified values \
-when the `level` field value e.g. should be set to 101, when before it is set 100 it only show 100 \
-highscore it will return an error
+you can still try to apply values out of the specified range, but it will
 
-when the fields `level` or `highscore` are set to 0, it will hide them in the response
+1. return an error or
+2. will just return the unmodified values. \
+   e.g. when the `level` field value should be set to `101`, when before it is set `100` it only show 100.
 
-#### inputs
+`highscore` it will return an error.
 
-when updating a players values these will not me mirrored into the players save files but will only be shown on a player request e.g when wanting to send you an invite \
-When requesting to see a profile via the Top Run list it will get the data from the `/profile` not the `GetPlayer`
-When you look at your own Player Profile, there will the data also not appear (data is from your save file)
+Wen the fields `level` or `highscore` are set to 0, it will hide them in the response.
 
-Only the name field it needed for any request \
-level, highscore, metadata are all optional and do not have to be included to make a successfull request
+#### Inputs
+
+When updating a players values, these will not be mirrored into the player's save files, but will only be shown on a player request e.g when wanting to send you an invite.
+When requesting to see a profile via the Top Run list it will get the data from the `/profile` not the `GetPlayer` \
+When you look at your own Player Profile, the data will also not appear there. (data is from your save file)
+
+Only the name field is needed for any request \
+`level`, `highscore`, `metadata` are all optional and do not have to be included to make a successful request
 
 Field ids are not required to have a valid value to make a successful request \
-When an Invalid value is set, in the app users will be shown the default values e.g jake.default, jake_portrait ...
+When an invalid value is set, in the app users will be shown the default values e.g jake.default, jake_portrait ...
 
-you can set any valid value you want, and they are not restricted by having to unlock the cosmetic e.g. having to unlock the dino_portrait
+you can set any valid value you want, and they are not restricted by having to unlock the cosmetic (e.g., dino_portrait).
 
 <h4 id="stat_total_games_error">stat_total_games error</h4>
 When setting the field <code>stat_total_games</code> to a value and then decrease the value <br>
 it will then show it as a minus value, by how ever much you have decreased it <br>
 e.g. when setting the value to <code>10</code> and then changing it to <code>9</code>, it will show in the response as <code>-1/25</code> (25 runs until a new level)
 <br><br>
-when setting the e.g. the field <code>selected_portrait</code> to a invalid value it will show in the player preview the jake_portrait image and in the pop out profile as a white box
+when setting the the field e.g. <code>selected_portrait</code> to a invalid value, it will show in the player preview the `jake_portrait` image and in the pop out, profile as a white box.
 <br><br>
 sometimes it can take 1-5 seconds until the change is visibile in the app
 
@@ -673,13 +708,13 @@ sometimes it can take 1-5 seconds until the change is visibile in the app
 
 You can rename yourself by only changing the name value \
 This is the name value that shows everywhere up e.g. Player Profile, Top Run list
-After the change, all your requests have to use that new name until the 604800 second (7 days) refresh period expires.
+After the change, all your requests have to use that new name until the `604800` second (7 days) refresh period expires and you can change it again
 
 ## Json
 
 ### Register
 
-This will create a "empty" account that only creates a user with which you populate it with a player \
+This will create a "empty" account that only creates a user with which you populate with a player \
 It generates a idenity and a refresh token, with a ttl (time to live)
 
 ```json
@@ -693,16 +728,17 @@ It generates a idenity and a refresh token, with a ttl (time to live)
 
 ### Refresh
 
-The Refresh request is used to refresh the Accounts identity token before the set ttl
+The Refresh request is used to refresh the Accounts identity token, and continue using the account after ttl.
 
-it will return the same json as register response
+It will return the same json as the register response
 
 ### Manifest
 
 From the Manifest you get the version specific version data \
-You get the secret by extracting the game file (apk or ipa) and in the `assets/settings/sybo.tower.default.json` (ipa is `Payload/SubwaySurf.app/Data/Raw/settings/sybo.tower.default.json`) file contains a key `Secret` with the version specific secret.
+You get the secret by extracting it from the game file (apk or ipa) \
+In the `assets/settings/sybo.tower.default.json` (ipa is `Payload/SubwaySurf.app/Data/Raw/settings/sybo.tower.default.json`) file contains a key `Secret` with the version specific secret.
 
-for specific experiments you can set `ab_google_play`, `ab_revive_codechange`
+For specific experiments you can set `ab_google_play`, `ab_revive_codechange`
 
 <details>
   <summary>Android production</summary>
@@ -786,6 +822,8 @@ for specific experiments you can set `ab_google_play`, `ab_revive_codechange`
 
 </details>
 
+**Url examples**
+
 ```
 https://manifest.tower.sybo.net/v1.0/subway/3.36.0/ios/4fPvIR1E1SnL1LRl9453/manifest.json
 https://manifest.tower.sybo.net/v1.0/subway/3.44.1/android/99fGW8FHpmAbQR4BqBwr/manifest.json
@@ -794,19 +832,27 @@ https://manifest.tower.sybo.net/v1.0/subway/3.44.2/android/s8B88pVbhzpKmvX6BV0u/
 https://manifest.tower.sybo.net/v1.0/subway/3.44.2/android/s8B88pVbhzpKmvX6BV0u/manifest.json
 ```
 
+_Default Schema_
+
 ```
 https://manifest.tower.sybo.net/v1.0/{game}/{version}/{platform}/{secretToken}/manifest.json
 ```
 
+_Experiment Schema_
+
+```
+https://manifest.tower.sybo.net/v1.0/{game}/{version}/{platform}/{secretToken}/{experiment}/manifest.json
+```
+
 ### Gamedata
 
-It is possible to get the gamedata/tower files of the old depreciated method of extracting the apk gamefile or ipa gamefile, using from the manifest request contained `gamedata` value
-(state 3.47.0)
+You can get the gamedata/tower files in bypass of the old depreciated method of extracting the apk gamefile or ipa gamefile (ipa still works), using from the manifest request contained `gamedata` hash value
+(state 3.48.5)
 
-You can request the `manifest.json`, which is contains the manifest of all the exsisting files in gamedata, after you can get all other files
+You can request the `manifest.json`, which contains the manifest of all the existing files in gamedata.
 
 ```json
-{"experiment":"default","game":"subway","objects":{"achievements":{"filename":"achievements.json","key":"2bed33daedf13ae310d90edff852600598e665e3"},"adplacements":{"filename":"adplacements.json","key":"2010b70022bba2451310a6e60166a4b31f21fe0b"},"assemblyevents":{"filename":"assemblyevents.json","key":"4fa66108ddd7f8bead20b40f6a8b505a9cdf098f"}...},"spec":"v1.0","version":"3.46.0"}
+{"experiment":"default","game":"subway","objects":{"achievements":{"filename":"achievements.json","key":"2bed33daedf13ae310d90edff852600598e665e3"},"adplacements":{"filename":"adplacements.json","key":"2010b70022bba2451310a6e60166a4b31f21fe0b"},"assemblyevents":{"filename":"assemblyevents.json","key":"4fa66108ddd7f8bead20b40f6a8b505a9cdf098f"}truncated...},"spec":"v1.0","version":"3.46.0"}
 ```
 
 ```
@@ -834,16 +880,17 @@ This request will return the asset in the UnityFs format
 http://assets.tower.sybo.net/v1.0/{game}/{bundleId}
 ```
 
-it needs to have the User Agent \
-`UnityPlayer/2022.3.24f1 (UnityWebRequest/1.0, libcurl/8.5.0-DEV)`
+It can have the User Agent `UnityPlayer/2022.3.24f1 (UnityWebRequest/1.0, libcurl/8.5.0-DEV)`
 
-inside the `assets/aa/catalog.json` file, inside the list `m_InternalIds`, you can see all the files which are the links that are beginning with "sybo://"
+Inside the `assets/aa/catalog.json` file, under the `m_InternalIds` list, you’ll find all the file entries. These are links starting with `sybo://`, such as:
 
-`9917a9a0-0de9-40fb-bb80-392ee596f705/bundle/1.0.0/characters-remote_assets_pixeljake_default_outfit_config_7a3d5cbdbef0e42b386ceea8f110c324.bundle`
+`sybo://9917a9a0-0de9-40fb-bb80-392ee596f705/bundle/1.0.0/characters-remote_assets_pixeljake_default_outfit_config_7a3d5cbdbef0e42b386ceea8f110c324.bundle`
+
+These entries reference the actual asset bundles used by the game.
 
 ### GDPR status
 
-You can delete your account which is required by the gdpr and with this request you can look for the status of your deletion request
+This is the account delete status request, with wich you get the status of the current account delete request.
 
 ```json
 {
@@ -862,9 +909,9 @@ You can delete your account which is required by the gdpr and with this request 
 This is the account deletion request that will delete your account.
 
 It only deletes your public profile (that was is shown when other players look at your player) not your save data \
-when you are friends with a player you are removed their friends list
+when you are friends with a player you are removed from their friends list
 
-it will only delete your `player` but not your `account`, that means you can just use `CreatePlayer` again without the need of registering again
+it will only delete your `player` but not your `account`, that means you can just use `CreatePlayer` request again without the need of registering again.
 
 ```json
 {
@@ -879,10 +926,6 @@ it will only delete your `player` but not your `account`, that means you can jus
 ```
 
 ### Get Daily Challenge
-
-This request is made when running not normal but via the Daily High Score Event
-
-The response
 
 <details>
 
@@ -922,7 +965,7 @@ The response
           { "key": "score", "value": "170558" }
         ]
       },
-      trunicated 7x
+      truncated 7x
     ]
   }
 }
@@ -934,7 +977,7 @@ The response
 
 This request is made when running not normal but via the Daily High Score Event
 
-No idea for what the `matchmakingStartValue` is for
+It is not known from what the `matchmakingStartValue` is from
 
 <details>
 
@@ -974,7 +1017,7 @@ No idea for what the `matchmakingStartValue` is for
           { "key": "frame", "value": "default_frame" }
         ]
       },
-      trunicated 7x
+      truncated 7x
       {
         "uid": "0197d683-d0f4-7563-bcc6-b285ff6fa1f5",
         "matchmakingValue": 0,
@@ -990,7 +1033,7 @@ No idea for what the `matchmakingStartValue` is for
 
 </details>
 
-When the request was already sent, it will return an error
+**Already send request**
 
 ```json
 { "error": "request failed", "kind": 6 }
@@ -1002,7 +1045,7 @@ When setting the challengeID to `daily_challenge_de`, you can only use the get_d
 
 <details>
 
-````json
+```json
 {
    "group":{
       "week":24,
@@ -1337,10 +1380,9 @@ When setting the challengeID to `daily_challenge_de`, you can only use the get_d
    }
 }
 
+```
 
-```json
-
-<details>
+</details>
 
 ### get tournament
 
@@ -1424,7 +1466,6 @@ When setting the challengeID to `daily_challenge_de`, you can only use the get_d
             "matchmaking":{
                "groupSize":20,
                "bracketMaxUsers":{
-
                },
                "bracketSort":{
                   "bronze":1,
@@ -1495,7 +1536,6 @@ When setting the challengeID to `daily_challenge_de`, you can only use the get_d
                "past":10529983
             },
             "socialIds":[
-
             ],
             "metadata":[
                {
@@ -1533,7 +1573,6 @@ When setting the challengeID to `daily_challenge_de`, you can only use the get_d
                "past":3123567
             },
             "socialIds":[
-
             ],
             "metadata":[
                {
@@ -1571,7 +1610,6 @@ When setting the challengeID to `daily_challenge_de`, you can only use the get_d
                "past":7786878
             },
             "socialIds":[
-
             ],
             "metadata":[
                {
@@ -1688,25 +1726,22 @@ When setting the challengeID to `daily_challenge_de`, you can only use the get_d
       ]
    }
 }
-````
+```
 
 </details>
 
 ### profile
 
 This request returns the complete save data for a player.
-you only need the player uuid
 
-the response will then output the save data in escaped json that you can decode using [profile_decode.py](./profile_decode.py)
+the response will output the save data in escaped json that you can decode using this [script](./send/scripts/profile_decode.py)
 
-All players listed in the tournament (Top Run) will return successfully.
+All players listed in the tournament (Top Run) will return successfully. \
 This profile data can be requested using the `uid`, which is simply the player's uuid.
 
-It is unknown when and how the save data of a player is requestable
+when the id doesn't exist then it will return with 404 error
 
-when the id dosnt exist then it will return with 404 error
-
-trunicated version with only wallet, dataConsent, missedRewardsModels
+**truncated version with only wallet, dataConsent, missedRewar**dsModels
 
 <details>
 
@@ -1721,7 +1756,7 @@ trunicated version with only wallet, dataConsent, missedRewardsModels
 
 </details>
 
-### analytics
+### Analytics
 
 There are many different types of events
 
@@ -1774,9 +1809,11 @@ https://subway-surfers.sng.link/A8yjk/diz7?_dl=subwaysurfers://&pcn=default&_p={
 { "error": "request failed", "kind": 6 }
 ```
 
-3 - Already redeemed
-5 - Promocode dosnt exists
-6 - Promocode Expired
+**Status codes**
+
+3. Already redeemed
+5. Promocode doesn't exist
+6. Promocode Expired
 
 Redeem codes
 
@@ -1794,7 +1831,11 @@ https://subway-surfers.sng.link/A8yjk/ucg6?_dl=subwaysurfers://&pcn=default&_p={
 
 ### Profile
 
-One scenario I consider is that, since the app doesn’t send all your save data directly to the server and the save data is needed to make the `/profile` request, that they instead collect via the analytics, over time, about what you buy, collect, choose, and play, then generate your profile from that data.
+Finding out how the `/profile` gets its data
+
+One scenario I consider is that, since i have not seen the the app send the profile data directly to the server, \
+and the save data is needed to make the `/profile` request, \
+that they instead collect via the analytics, over time, about what you buy, collect, choose, and play, then generate your profile from that data.
 
 For example, ecn_inventory send some inventory data, although this is quite unlikely.
 

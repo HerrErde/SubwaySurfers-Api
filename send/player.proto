@@ -13,7 +13,7 @@ message InviteQuota {
   uint32 max_friends = 1;
   uint32 friend_count = 2;
   uint32 send_invite_count = 3;
-  uint32 recieved_invite_count = 4;
+  uint32 received_invite_count = 4;
   uint32 max_invites = 5;
 }
 
@@ -62,7 +62,7 @@ message InviteUserUuid { // The user the invite is sent to
 
 message ReceivedInvite {
   string action_uuid = 1;
-  InviteUserUuid recieved_uuid = 2;
+  InviteUserUuid received_uuid = 2;
   UserInfo user_info = 3;
   Time invited_at = 4;
 }
@@ -70,7 +70,7 @@ message ReceivedInvite {
 message SendInvite {
   string action_uuid = 1;
   UserInfo user_info = 2;
-  InviteUserUuid recieved_uuid = 3;
+  InviteUserUuid received_uuid = 3;
   Time invited_at = 4;
 }
 
