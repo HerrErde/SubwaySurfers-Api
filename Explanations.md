@@ -33,10 +33,10 @@
     - [Assets](#assets)
     - [GDPR status](#gdpr-status)
     - [GDPR delete](#gdpr-delete)
-    - [Get Daily Challenge](#get-daily-challenge)
-    - [Sent Daily Challenge](#sent-daily-challenge)
-    - [send tournament](#send-tournament)
-    - [get tournament](#get-tournament)
+    - [Get Challenge](#get-challenge)
+    - [Sent Challenge](#sent-challenge)
+    - [Send Tournament](#send-tournament)
+    - [Get Tournament](#get-tournament)
     - [profile](#profile)
     - [Analytics](#analytics)
       - [Analytics Core](#analytics-core)
@@ -925,7 +925,23 @@ it will only delete your `player` but not your `account`, that means you can jus
 }
 ```
 
-### Get Daily Challenge
+### Get Challenge
+
+<details>
+<summary>Request details</summary>
+
+`GET`
+
+```
+/v2.0/challenge/{challenge}_{c}/group
+```
+
+challenge like `daily_challenge_en`, `staged_tta_en`
+
+the country code has to be the same as in the [send](#sent-challenge) request as `matchmakingId` value
+
+
+</details>
 
 <details>
 
@@ -973,9 +989,29 @@ it will only delete your `player` but not your `account`, that means you can jus
 
 </details>
 
-### Sent Daily Challenge
+### Sent Challenge
 
-This request is made when running not normal but via the Daily High Score Event
+<details>
+<summary>Request details</summary>
+
+`POST`
+
+```
+/v2.0/challenge/group
+```
+
+```json
+{
+  "matchmakingStartValue": ...,
+  "gamedataHash": ...,
+  "challengeID": ...,
+  "matchmakingId": ...
+}
+```
+
+</details>
+    
+This request is made when opening the view of a challenge in the Events tab
 
 It is not known from what the `matchmakingStartValue` is from
 
@@ -1039,9 +1075,9 @@ It is not known from what the `matchmakingStartValue` is from
 { "error": "request failed", "kind": 6 }
 ```
 
-When setting the challengeID to `daily_challenge_de`, you can only use the get_daily_challenge request with the challenge group for that country, here `nl`
+When setting the challengeID to `daily_challenge_nl`, you can only use the get_challenge request with the challenge group for that country, here `nl`
 
-### send tournament
+### Send Tournament
 
 <details>
 
@@ -1384,7 +1420,7 @@ When setting the challengeID to `daily_challenge_de`, you can only use the get_d
 
 </details>
 
-### get tournament
+### Get Tournament
 
 <details>
 

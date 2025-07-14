@@ -665,8 +665,8 @@ def send_fbinstall():
         print(r.json())
 
 
-def get_daily_challenge(c: str = "en"):
-    url = api_url + f"/v2.0/challenge/daily_challenge_{c}/group"
+def get_challenge(challenge: str = "daily_challenge_en"):
+    url = api_url + f"/v2.0/challenge/{challenge}/group"
 
     with httpx.Client(http2=True) as client:
         r = client.get(
@@ -731,5 +731,5 @@ def get_challenge(
 # send_redeem("PrideFrame2025", 1)
 # send_websdk()
 # send_fbinstall()
-# get_daily_challenge("nl")
+# get_challenge("nl")
 # get_challenge(39,"70409a79f9500482a5075052a93f15be22fc1383","daily_challenge_de","dailyChallenge")
