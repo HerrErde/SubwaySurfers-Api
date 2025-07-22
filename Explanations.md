@@ -16,14 +16,17 @@
       - [Cancel Friend Request](#cancel-friend-request)
       - [Get Relationship](#get-relationship)
     - [Get Player](#get-player)
-    - [Get Player by Tag](#get-player-by-tag)
-    - [Get Player by Id](#get-player-by-id)
-    - [Get Wallet](#get-wallet)
-    - [Init Energy](#init-energy)
-    - [Get Energies](#get-energies)
+      - [Get Player Data](#get-player-data)
+      - [Get Player by Tag](#get-player-by-tag)
+      - [Get Player by Id](#get-player-by-id)
+      - [Get Wallet](#get-wallet)
     - [Update Player](#update-player)
       - [Inputs](#inputs)
       - [Name](#name)
+      - [Badges](#badges)
+    - [Energy](#energy)
+      - [Init Energy](#init-energy)
+      - [Get Energies](#get-energies)
   - [Json](#json)
     - [Register](#register)
     - [Refresh](#refresh)
@@ -163,6 +166,38 @@ user_data {
   metadata {
     key: "highscore_default"
     value: "1"
+  }
+  metadata {
+    key: "equipped_badge_1"
+    value: ""
+  }
+  metadata {
+    key: "equipped_badge_2"
+    value: ""
+  }
+  metadata {
+    key: "equipped_badge_3"
+    value: ""
+  }
+  metadata {
+    key: "equipped_badge_4"
+    value: ""
+  }
+  metadata {
+    key: "equipped_badge_tier_1"
+    value: "0"
+  }
+  metadata {
+    key: "equipped_badge_tier_2"
+    value: "0"
+  }
+  metadata {
+    key: "equipped_badge_tier_3"
+    value: "0"
+  }
+  metadata {
+    key: "equipped_badge_tier_4"
+    value: "0"
   }
   created_at {
     sec: 1748942697
@@ -520,20 +555,22 @@ status {
 
 ### Get Player
 
+#### Get Player Data
+
 This will get data of the own player \
 It will just return the `PlayerResponse` body
 
 The fields do not show up directly after generating the Player \
 All metadata fields will not exist until they are set with UpdatePlayer
 
-Also, the `update_player_at`, `name_change_expires_at` and`name_changed_at` only show when the name is changed from the name the player was created with to a new one.
+Additionally, the `update_player_at`, `name_change_expires_at` and`name_changed_at` only show when the name is changed from the name the player was created with to a new one.
 
-### Get Player by Tag
+#### Get Player by Tag
 
 This gets a player by their invite Tag \
 It returns the `PlayerResponse` body
 
-### Get Player by Id
+#### Get Player by Id
 
 This gets a player by their uuid \
 It returns the `PlayerResponse` body
@@ -543,7 +580,7 @@ you need first the uuid of the player which you can get via the tag (invite id) 
 
 It is not possible to get the data via a `action_uuid`, it will result in an error
 
-### Get Wallet
+#### Get Wallet
 
 The Get Wallet request outputs the time the wallet was last updated (probably)
 
@@ -556,7 +593,126 @@ walletdata {
 }
 ```
 
-### Init Energy
+### Update Player
+
+Update fields
+
+Get all valid values [HerrErde/subway-source](https://github.com/HerrErde/subway-source)
+
+| Id | Type | Limit | Special |
+|---|---|---|---|
+| name | string | 2-15 characters, only alphabet letters, no numeric | 604800 seconds (7 days) regex: `^[a-zA-Z]+$` |
+| level | int | 100 |  |
+| highscore | int | 2147483646 | 2147483647 is the int32 limit, also just -1 |
+| stat_total_visited_destinations | int | 49 characters |  |
+| stat_total_games | int | 49 characters | Once set, [this value should only be increased](#stat_total_games_error) for details |
+| stat_owned_characters | int | 49 characters |  |
+| stat_owned_characters_outfits | int | 49 characters |  |
+| stat_owned_boards | int | 49 characters |  |
+| stat_owned_boards_upgrades | int | 49 characters |  |
+| selected_portrait | string | 49 characters |  |
+| selected_frame | string | 49 characters |  |
+| selected_country | string | 49 characters | Only ISO 3166-1 alpha-2 codes (e.g., de, en, nl). Using other values (e.g., `test`) will display `countries.test.name` ([country_iso.txt](./country_iso.txt)) |
+| selected_character | string | 49 characters | Must follow the format `character.Outfit` (e.g., `jake.darkOutfit`) |
+| selected_board_upgrades | string | 49 characters | Comma-separated list of upgrades (e.g., "default,trail") |
+| selected_board | string | 49 characters |  |
+| selected_background | string | 49 characters |  |
+| highscore_default | int | 49 characters |  |
+| stat_achievements | int | 49 characters |  |
+| stat_total_top_run_medals_bronze | int | 49 characters |  |
+| stat_total_top_run_medals_silver | int | 49 characters |  |
+| stat_total_top_run_medals_gold | int | 49 characters |  |
+| stat_total_top_run_medals_diamond | int | 49 characters |  |
+| stat_total_top_run_medals_champion | int | 49 characters |  |
+| equipped_badge_tier_`1-4` | int | the number 0-4 |  |
+| equipped_badge_`1-4` | str | a valid achivements id that has a badgeIconId set |  |
+
+all values inside the `metadata` dict have to be set in quotes even when they are integers e.g. \
+stat_total_visited_destinations: "1" \
+all values will allow strings but the values will then not show up in the the app correctly
+
+when setting the key to value of 50 the error will say that the metadata values have a limit of 50 characters, which seems wrong, only 49 works
+
+you can still try to apply values out of the specified range, but it will
+
+1. return an error or
+2. will just return the unmodified values. \
+   e.g. when the `level` field value should be set to `101`, when before it is set `100` it only show 100.
+
+`highscore` it will return an error.
+
+When the fields `level` or `highscore` are set to 0, it will hide them in the response.
+
+#### Inputs
+
+the metadata map has a limit of at most 20 entries
+
+When updating a players values, these will not be mirrored into the player's save files, but will only be shown on a player request e.g when wanting to send you an invite.
+When requesting to see a profile via the Top Run list it will get the data from the `/profile` not the `GetPlayer` \
+When you look at your own Player Profile, the data won't appear there. (data is from your save file)
+
+Only the name field is needed for any request \
+`level`, `highscore`, `metadata` are all optional and do not have to be included to make a successful request
+
+Field ids are not required to have a valid value to make a successful request \
+When an invalid value is set, in the app users will be shown the default values e.g jake.default, jake_portrait ...
+
+you can set any valid value you want, and they are not restricted by having to unlock the cosmetic (e.g., dino_portrait).
+
+<h4 id="stat_total_games_error">stat_total_games error</h4>
+When setting the field <code>stat_total_games</code> to a value and then decrease the value <br>
+it will then show it as a minus value, by how ever much you have decreased it <br>
+e.g. when setting the value to <code>10</code> and then changing it to <code>9</code>, it will show in the response as <code>-1/25</code> (25 runs until a new level)
+<br><br>
+when setting the the field e.g. <code>selected_portrait</code> to a invalid value, it will show in the player preview the `jake_portrait` image and in the pop out, profile as a white box.
+<br><br>
+sometimes it can take 1-5 seconds until the change is visibile in the app
+
+#### Name
+
+You can rename yourself by only changing the name value \
+This is the name value that shows everywhere up e.g. Player Profile, Top Run list
+After the change, all your requests have to use that new name until the `604800` second (7 days) refresh period expires and you can change it again
+
+#### Badges
+
+You can set badges to your player
+
+the key `equipped_badge_` has the value of the achievement id e.g `achievement_08` here is a [list]() \
+`equipped_badge_tier_` will show the "tier" of the badge, which is the `claimState` of the achievements list and gives it just a different style
+
+```json
+"claimState": [
+   true,
+   true,
+   true,
+   true,
+   true
+   ],
+```
+
+You can set the badges by setting the `equipped_badge_1`, `equipped_badge_2`, `equipped_badge_3`, `equipped_badge_4` to a valid badge id. \
+The values are also stored in the achivements.json file in a list, under the `equippedProfileBadges` key.
+
+```json
+  "equippedProfileBadges": [
+    {
+      "ID": "achievement_08",
+      "TierIndex": 3
+    },
+    {}, // when no badge set
+    {},
+    {}
+  ]
+```
+
+but since the value is stored locally in the file, changing it through the API won't make the change visible in the app, only in how others see your profile.
+
+Additionally there is a error where it is not possible to clear the badges, the app can send a empty `equipped_badge_` value, while i have not found out how to replicate that
+
+### Energy
+
+#### Init Energy
 
 Despite that they are in the `/rpc/` endpoints, they are able to be send and receive json.
 
@@ -610,7 +766,7 @@ This request happends after the _GetWallet_ request
 { "code": "already_exists", "message": "request failed" }
 ```
 
-### Get Energies
+#### Get Energies
 
 **When no energie is set**
 
@@ -632,83 +788,6 @@ This request happends after the _GetWallet_ request
   }
 }
 ```
-
-### Update Player
-
-Update fields
-
-Get all valid values [HerrErde/subway-source](https://github.com/HerrErde/subway-source)
-
-| Id | Type | Limit | Special |
-|---|---|---|---|
-| name | string | 2-15 characters, only alphabet letters, no numeric | 604800 seconds (7 days) regex: `^[a-zA-Z]+$` |
-| level | int | 100 |  |
-| highscore | int | 2147483646 | 2147483647 is the int32 limit, also just -1 |
-| stat_total_visited_destinations | int | 49 characters |  |
-| stat_total_games | int | 49 characters | Once set, [this value should only be increased](#stat_total_games_error) for details |
-| stat_owned_characters | int | 49 characters |  |
-| stat_owned_characters_outfits | int | 49 characters |  |
-| stat_owned_boards | int | 49 characters |  |
-| stat_owned_boards_upgrades | int | 49 characters |  |
-| selected_portrait | string | 49 characters |  |
-| selected_frame | string | 49 characters |  |
-| selected_country | string | 49 characters | Only ISO 3166-1 alpha-2 codes (e.g., de, en, nl). Using other values (e.g., `test`) will display `countries.test.name` ([country_iso.txt](./country_iso.txt)) |
-| selected_character | string | 49 characters | Must follow the format `character.Outfit` (e.g., `jake.darkOutfit`) |
-| selected_board_upgrades | string | 49 characters | Comma-separated list of upgrades (e.g., "default,trail") |
-| selected_board | string | 49 characters |  |
-| selected_background | string | 49 characters |  |
-| highscore_default | int | 49 characters |  |
-| stat_achievements | int | 49 characters |  |
-| stat_total_top_run_medals_bronze | int | 49 characters |  |
-| stat_total_top_run_medals_silver | int | 49 characters |  |
-| stat_total_top_run_medals_gold | int | 49 characters |  |
-| stat_total_top_run_medals_diamond | int | 49 characters |  |
-| stat_total_top_run_medals_champion | int | 49 characters |  |
-
-all values inside the `metadata` dict have to be set in quotes even when they are integers e.g. \
-stat_total_visited_destinations: "1" \
-all values will allow strings but the values will then not show up in the the app correctly
-
-when setting the key to value of 50 the error will say that the metadata values have a limit of 50 characters, which seems wrong, only 49 works
-
-you can still try to apply values out of the specified range, but it will
-
-1. return an error or
-2. will just return the unmodified values. \
-   e.g. when the `level` field value should be set to `101`, when before it is set `100` it only show 100.
-
-`highscore` it will return an error.
-
-Wen the fields `level` or `highscore` are set to 0, it will hide them in the response.
-
-#### Inputs
-
-When updating a players values, these will not be mirrored into the player's save files, but will only be shown on a player request e.g when wanting to send you an invite.
-When requesting to see a profile via the Top Run list it will get the data from the `/profile` not the `GetPlayer` \
-When you look at your own Player Profile, the data will also not appear there. (data is from your save file)
-
-Only the name field is needed for any request \
-`level`, `highscore`, `metadata` are all optional and do not have to be included to make a successful request
-
-Field ids are not required to have a valid value to make a successful request \
-When an invalid value is set, in the app users will be shown the default values e.g jake.default, jake_portrait ...
-
-you can set any valid value you want, and they are not restricted by having to unlock the cosmetic (e.g., dino_portrait).
-
-<h4 id="stat_total_games_error">stat_total_games error</h4>
-When setting the field <code>stat_total_games</code> to a value and then decrease the value <br>
-it will then show it as a minus value, by how ever much you have decreased it <br>
-e.g. when setting the value to <code>10</code> and then changing it to <code>9</code>, it will show in the response as <code>-1/25</code> (25 runs until a new level)
-<br><br>
-when setting the the field e.g. <code>selected_portrait</code> to a invalid value, it will show in the player preview the `jake_portrait` image and in the pop out, profile as a white box.
-<br><br>
-sometimes it can take 1-5 seconds until the change is visibile in the app
-
-#### Name
-
-You can rename yourself by only changing the name value \
-This is the name value that shows everywhere up e.g. Player Profile, Top Run list
-After the change, all your requests have to use that new name until the `604800` second (7 days) refresh period expires and you can change it again
 
 ## Json
 
@@ -844,6 +923,21 @@ _Experiment Schema_
 https://manifest.tower.sybo.net/v1.0/{game}/{version}/{platform}/{secretToken}/{experiment}/manifest.json
 ```
 
+When using the v2.0 schema, you can use the `archive` endpoint to get a zip of the game files. \
+It seems like the v2.0 schmea has only the `archive` endpoint, all other do not exist
+
+```
+https://manifest.tower.sybo.net/v2.0/subway/3.49.1/android/junpNkV78FJxO4dlGAbO/archive.zip
+```
+
+```
+manifest.json
+data/
+   boards.json
+   calendars.json
+   ...
+```
+
 ### Gamedata
 
 You can get the gamedata/tower files in bypass of the old depreciated method of extracting the apk gamefile or ipa gamefile (ipa still works), using from the manifest request contained `gamedata` hash value
@@ -939,7 +1033,6 @@ it will only delete your `player` but not your `account`, that means you can jus
 challenge like `daily_challenge_en`, `staged_tta_en`
 
 the country code has to be the same as in the [send](#sent-challenge) request as `matchmakingId` value
-
 
 </details>
 
@@ -1415,7 +1508,6 @@ When setting the challengeID to `daily_challenge_nl`, you can only use the get_c
       ]
    }
 }
-
 ```
 
 </details>
