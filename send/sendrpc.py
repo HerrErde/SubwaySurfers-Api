@@ -787,6 +787,80 @@ def init_energy(kindId: str):
         print("Failed to get response:", e)
 
 
+def use_energy(kindId: str, value: int):
+    url = api_url + "/rpc/energy.ext.v1.PrivateService/UseEnergy"
+
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {identityToken}",
+    }
+
+    body = {"energyDiff": {"kindId": kindId, "value": value}}
+
+    with httpx.Client(http2=True) as client:
+        r = client.post(
+            url,
+            headers=headers,
+            json=body,
+        )
+
+    try:
+        print(r.json())
+    except Exception as e:
+        print("Failed to get response:", e)
+
+
+def match():
+    from player_pb2 import Empty, MatchPlayerResponse
+
+    url = api_url + "/rpc/player.ext.v1.PrivateService/Match"
+
+    msg = Empty()
+
+    payload = msg.SerializeToString()
+
+    # gRPC-Web framing
+    body = b"\x00" + len(payload).to_bytes(4, "big") + payload
+
+    with httpx.Client(http2=True) as client:
+        r = client.post(
+            url,
+            headers=headers,
+            content=body,
+        )
+
+    if "text/html" in r.headers.get("Content-Type", ""):
+        print("Received HTML instead of protobuf. Something went wrong.")
+        return
+
+    if r.status_code != 200:
+        print(f"HTTP error {r.status_code}: {r.text}")
+        return
+
+    raw = r.content
+    if len(raw) < 5:
+        print("gRPC-Web response too short")
+        return
+
+    msg_len = int.from_bytes(raw[1:5], "big")
+    grpc_payload = raw[5 : 5 + msg_len]
+
+    grpc_status = r.headers.get("grpc-status", "0")
+    if grpc_status != "0":
+        print("gRPC Error:", r.headers.get("grpc-message", "Unknown error"))
+        return
+
+    try:
+        resp = MatchPlayerResponse()
+        resp.ParseFromString(grpc_payload)
+        print(resp)
+    except Exception as e:
+        print("Failed to parse response:", e)
+        message = r.headers.get("grpc-message")
+        print("gRPC message:", message)
+        print("gRPC payload (hex):", grpc_payload.hex())
+
+
 # get_player_by_tag("N99635VZB9NFPD")
 # get_player_by_id("fca24390-4e4e-4994-a02a-3aab323129a2")
 # create_player()

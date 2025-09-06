@@ -27,6 +27,8 @@
     - [Energy](#energy)
       - [Init Energy](#init-energy)
       - [Get Energies](#get-energies)
+      - [Use Energies](#use-energies)
+    - [Match](#match)
   - [Json](#json)
     - [Register](#register)
     - [Refresh](#refresh)
@@ -712,9 +714,12 @@ Additionally there is a error where it is not possible to clear the badges, the 
 
 ### Energy
 
-#### Init Energy
-
 Despite that they are in the `/rpc/` endpoints, they are able to be send and receive json.
+
+These endpoints are used for the Crossover of Subway Surfers and Brawl Stars Showdown gamemode. \
+They will likely also be used for other Crossover evnts.
+
+#### Init Energy
 
 When a _Energie_ was initialized (added), it will return the _Energie_ with the used uuid, a `value` and `regenCap`and the time it was updated.
 
@@ -788,6 +793,35 @@ This request happends after the _GetWallet_ request
   }
 }
 ```
+
+#### Use Energies
+
+**When no energie is set**
+
+```json
+{ "energies": {} }
+```
+
+**Default Response**
+
+```json
+{
+  "energy": {
+    "kindId": "0197780a-77bc-7bb8-bf9b-687fa58a53c0",
+    "value": 2,
+    "regenCap": 3,
+    "nextAt": "2025-09-04T23:37:03.596076Z",
+    "updatedAt": "2025-09-04T19:37:03.596076Z",
+    "refillRate": "14400s",
+    "refillCount": 1
+  }
+}
+```
+
+### Match
+
+This is used for generating a Match or a Player game Group (or something).
+It will output 5 random players `PlayerResponse` bodys.
 
 ## Json
 

@@ -52,9 +52,9 @@ message UserData {
   Time name_change_expires_at = 10;
 }
 
-  message PlayerResponse {
-    UserData user_data = 1;
-  }
+message PlayerResponse {
+  UserData user_data = 1;
+}
 
 message InviteUserUuid { // The user the invite is sent to
   string user_uuid = 1;
@@ -123,4 +123,8 @@ message GetFriendAndInvitesResponse {
   repeated ReceivedInvite received_invites = 2;
   repeated SendInvite sent_invites = 3;
   InviteQuota quota = 4;
+}
+
+message MatchPlayerResponse {
+  repeated UserData player = 1;
 }
