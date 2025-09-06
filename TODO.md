@@ -17,6 +17,8 @@ RPC
 - [x] GetWallet
 - [x] InitializeEnergy
 - [x] GetEnergies
+- [x] UseEnergies
+- [x] Match
 
 Json
 
