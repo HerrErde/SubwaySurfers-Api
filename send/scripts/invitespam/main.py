@@ -97,6 +97,51 @@ def update_player(authtoken, name):
             "stat_total_top_run_medals_diamond": str(random.randint(1, 50)),
             "stat_total_top_run_medals_champion": str(random.randint(1, 50)),
         },
+    )z
+
+    payload = msg.SerializeToString()
+    body = b"\x00" + len(payload).to_bytes(4, "big") + payload
+    headers = {
+        "User-Agent": user_agent,
+        "grpc-accept-encoding": "identity,gzip",
+        "Authorization": f"Bearer {authtoken}",
+        "Content-Type": "application/grpc-web",
+    }
+    with httpx.Client(http2=True) as client:
+        r = client.post(url, headers=headers, content=body)
+    raw = r.content
+    if len(raw) < 5:
+        raise RuntimeError("CreatePlayer response too short")
+    msg_len = int.from_bytes(raw[1:5], "big")
+    grpc_payload = raw[5 : 5 + msg_len]
+    resp = PlayerResponse()
+    resp.ParseFromString(grpc_payload)
+    return resp
+
+
+def update_player_badges(authtoken, name):
+    length, badges = choose_badges()
+
+    url = api_url + "/rpc/player.ext.v1.PrivateService/UpdatePlayer"
+    stat_achievements = random.randint(0, length)
+
+    metadata = {}
+    metadata["stat_achievements"] = str(stat_achievements)
+
+    non_none_badges = {k: v for k, v in badges.items() if v is not None}
+    limited_badges = dict(list(non_none_badges.items())[:stat_achievements])
+
+    for pos in range(1, 5):
+        badge = limited_badges.get(pos)
+        if badge:
+            metadata[f"equipped_badge_{pos}"] = badge["id"]
+            metadata[f"equipped_badge_tier_{pos}"] = str(badge["tier"])
+
+    msg = UpdatePlayerRequest(
+        name=name,
+        level=random.randint(1, 10),
+        highscore=random.randint(1, 50000),
+        metadata=metadata,
     )
 
     payload = msg.SerializeToString()
@@ -239,6 +284,7 @@ def main(friend_tag: str, amount: int):
 
             player_resp = create_player(authtoken, name)
             update_player(authtoken, name)
+            update_player_badges(authtoken, name)
 
             if is_uuid:
                 playeruuid = friend_tag

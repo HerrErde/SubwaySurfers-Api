@@ -62,7 +62,31 @@ def choose_country():
     return random.choice(ISO_CODES)
 
 
-FILES = ["boards_data.json", "characters_data.json", "playerprofile_data.json"]
+def choose_badges():
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    with open(os.path.join(script_dir, "achievements_data.json")) as f:
+        BADGES_DATA = json.load(f)
+
+    valid_entries = [entry for entry in BADGES_DATA if entry.get("badgeIconId")]
+    length = len(BADGES_DATA)
+
+    badges_dict = {}
+    for pos in range(1, 5):
+        if random.random() < random.random():
+            entry = random.choice(valid_entries)
+            badges_dict[pos] = {"id": entry["id"], "tier": random.randint(1, 5)}
+        else:
+            badges_dict[pos] = None
+
+    return length, badges_dict
+
+
+FILES = [
+    "boards_data.json",
+    "characters_data.json",
+    "playerprofile_data.json",
+    "achievements_data.json",
+]
 
 BASE_URL = "https://github.com/HerrErde/subway-source/releases/latest/download/"
 
@@ -88,3 +112,4 @@ if __name__ == "__main__":
     character = choose_character()
     portrait, frame, background = choose_cosmetics()
     country = choose_country()
+    badges = choose_badges()
