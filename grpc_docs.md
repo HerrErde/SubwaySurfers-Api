@@ -28,11 +28,12 @@
       - [Init Energy](#init-energy)
       - [Get Energies](#get-energies)
       - [Use Energies](#use-energies)
+      - [Add Energy](#add-energy)
     - [Match](#match)
 
 ## General Notes
 
-All knowledge is for versions `3.52.0`
+All knowledge is for versions `3.52.1`
 
 > [!WARNING]
 > Changes are expected to happen
@@ -669,12 +670,11 @@ They will likely also be used for other Crossover evnts.
 
 #### Init Energy
 
-When a _Energie_ was initialized (added), it will return the _Energie_ with the used uuid, a `value` and `regenCap`and the time it was updated.
+When a **Energie** was initialized (added?), it will return the **Energie** with the used uuid, a `value` and `regenCap`and the time it was updated.
 
-It is unknown where this uuid is from, but it seems like its season dependent \
-This request happends after the _GetWallet_ request
+It is unknown where this uuid is from, but it seems like its event (e.g event/crossover/collaboration ) dependent
 
-**When setting the _Energie_**
+**Default Response**
 
 ```json
 {
@@ -707,7 +707,7 @@ This request happends after the _GetWallet_ request
 }
 ```
 
-**When a uuid was found**
+**When a uuid was not found**
 
 ```json
 { "code": "not_found", "message": "request failed" }
@@ -720,14 +720,6 @@ This request happends after the _GetWallet_ request
 ```
 
 #### Get Energies
-
-**When no energie is set**
-
-```json
-{ "energies": {} }
-```
-
-**Default Response**
 
 ```json
 {
@@ -742,13 +734,15 @@ This request happends after the _GetWallet_ request
 }
 ```
 
-#### Use Energies
-
 **When no energie is set**
 
 ```json
 { "energies": {} }
 ```
+
+**Default Response**
+
+#### Use Energies
 
 **Default Response**
 
@@ -766,7 +760,62 @@ This request happends after the _GetWallet_ request
 }
 ```
 
+**When no energie is set**
+
+```json
+{ "energies": {} }
+```
+
+#### Add Energy
+
+This is used for adding energy via watching Ads.
+It has a limit of 10 times per 24 hours.
+
+**Default Response**
+
+```json
+{
+  "energy": {
+    "kindId": "0197780a-77bc-7bb8-bf9b-687fa58a53c0",
+    "value": 4,
+    "regenCap": 3,
+    "updatedAt": "2025-09-09T18:20:21.217957Z",
+    "refillRate": "14400s",
+    "refillCount": 1
+  }
+}
+```
+
+**When add energie limit is reached**
+
+```json
+{
+  "code": "resource_exhausted",
+  "message": "request failed",
+  "details": [
+    {
+      "type": "google.rpc.QuotaFailure",
+      "value": "CoIBCi9FbmVyZ3lLaW5kOjAxOTc3ODBhLTc3YmMtN2JiOC1iZjliLTY4N2ZhNThhNTNjMBJPWW91IGhhdmUgcmVhY2hlZCB5b3VyIGRhaWx5IGxpbWl0IGZvciBhZGRpbmcgZW5lcmd5LiBQbGVhc2UgdHJ5IGFnYWluIHRvbW9ycm93Lg",
+      "debug": {
+        "violations": [
+          {
+            "subject": "EnergyKind:0197780a-77bc-7bb8-bf9b-687fa58a53c0",
+            "description": "You have reached your daily limit for adding energy. Please try again tomorrow."
+          }
+        ]
+      }
+    }
+  ]
+}
+```
+
+<details>
+  <Summary>Limit</Summary>
+  When firstly initializing via <code>init_energy()</code> and then using <code>add_energy()</code> 10 times,
+  in the app it will display as <code>13/3</code>.
+</details>
+
 ### Match
 
-This is used for generating a Match or a Player game Group (or something).
-It will output 5 random players `PlayerResponse` bodys.
+This is used for generating a Match or a Player game group.
+It will output 5 random players as `PlayerResponse` bodies.

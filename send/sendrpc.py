@@ -745,25 +745,6 @@ def get_wallet():
         print("gRPC payload (hex):", grpc_payload.hex())
 
 
-def get_energies():
-    url = api_url + "/rpc/energy.ext.v1.PrivateService/GetEnergies"
-
-    headers = {
-        "Content-Type": "application/json",
-        "Authorization": f"Bearer {identityToken}",
-    }
-
-    body = {}
-
-    with httpx.Client(http2=True) as client:
-        r = client.post(url, headers=headers, json=body)
-
-    try:
-        print(r.json())
-    except Exception as e:
-        print("Failed to get response:", e)
-
-
 def init_energy(kindId: str):
     url = api_url + "/rpc/energy.ext.v1.PrivateService/InitializeEnergy"
 
@@ -787,8 +768,50 @@ def init_energy(kindId: str):
         print("Failed to get response:", e)
 
 
+def get_energies():
+    url = api_url + "/rpc/energy.ext.v1.PrivateService/GetEnergies"
+
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {identityToken}",
+    }
+
+    body = {}
+
+    with httpx.Client(http2=True) as client:
+        r = client.post(url, headers=headers, json=body)
+
+    try:
+        print(r.json())
+    except Exception as e:
+        print("Failed to get response:", e)
+
+
 def use_energy(kindId: str, value: int):
     url = api_url + "/rpc/energy.ext.v1.PrivateService/UseEnergy"
+
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {identityToken}",
+    }
+
+    body = {"energyDiff": {"kindId": kindId, "value": value}}
+
+    with httpx.Client(http2=True) as client:
+        r = client.post(
+            url,
+            headers=headers,
+            json=body,
+        )
+
+    try:
+        print(r.json())
+    except Exception as e:
+        print("Failed to get response:", e)
+
+
+def add_energy(kindId: str, value: int):
+    url = api_url + "/rpc/energy.ext.v1.PrivateService/AddEnergy"
 
     headers = {
         "Content-Type": "application/json",
@@ -876,5 +899,7 @@ def match():
 # remove_friend("0196d7d9-6632-7267-a1be-df82225311a8")
 # get_relationship("0196ea6a-b6e1-7293-8576-260bd1bb294b")
 # get_wallet()
+# init_energy("0197780a-77bc-7bb8-bf9b-687fa58a53c0")
 # get_energies()
-# init_energy("0197d668-9dba-7e2d-bd8b-b7ab77a57bfa")
+# use_energy("0197780a-77bc-7bb8-bf9b-687fa58a53c0", 1)
+# add_energy("0197780a-77bc-7bb8-bf9b-687fa58a53c0", 1)
