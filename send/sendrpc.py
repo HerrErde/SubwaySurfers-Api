@@ -884,6 +884,46 @@ def match():
         print("gRPC payload (hex):", grpc_payload.hex())
 
 
+def get_wallet_json():
+    url = api_url + "/rpc/wallet.ext.v1.PrivateService/GetWallet"
+
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {identityToken}",
+    }
+
+    body = {}
+
+    with httpx.Client(http2=True) as client:
+        r = client.post(
+            url,
+            headers=headers,
+            json=body,
+        )
+
+    print(r.json())
+
+
+def use_consume(offerId):
+    url = api_url + "/rpc/wallet.ext.v1.PrivateService/Consume"
+
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {identityToken}",
+    }
+
+    body = {"offerId": offerId}
+
+    with httpx.Client(http2=True) as client:
+        r = client.post(
+            url,
+            headers=headers,
+            json=body,
+        )
+
+    print(r.json())
+
+
 # get_player_by_tag("N99635VZB9NFPD")
 # get_player_by_id("fca24390-4e4e-4994-a02a-3aab323129a2")
 # create_player()
@@ -899,6 +939,8 @@ def match():
 # remove_friend("0196d7d9-6632-7267-a1be-df82225311a8")
 # get_relationship("0196ea6a-b6e1-7293-8576-260bd1bb294b")
 # get_wallet()
+# get_wallet_json()
+# use_consume("44c48dba-68a0-4ef6-9df4-e8aa3b1bd913")
 # init_energy("0197780a-77bc-7bb8-bf9b-687fa58a53c0")
 # get_energies()
 # use_energy("0197780a-77bc-7bb8-bf9b-687fa58a53c0", 1)

@@ -20,6 +20,7 @@ RPC
 - [x] UseEnergy
 - [x] AddEnergy
 - [x] Match
+- [x] Consume
 
 Json
 

@@ -19,7 +19,10 @@
       - [Get Player Data](#get-player-data)
       - [Get Player by Tag](#get-player-by-tag)
       - [Get Player by Id](#get-player-by-id)
+    - [Wallet](#wallet)
       - [Get Wallet](#get-wallet)
+      - [Get Wallet Json](#get-wallet-json)
+      - [Consume](#consume)
     - [Update Player](#update-player)
       - [Inputs](#inputs)
       - [Name](#name)
@@ -531,6 +534,8 @@ you need first the uuid of the player which you can get via the tag (invite id) 
 
 It is not possible to get the data via a `action_uuid`, it will result in an error
 
+### Wallet
+
 #### Get Wallet
 
 The Get Wallet request outputs the time the wallet was last updated (probably)
@@ -544,6 +549,83 @@ walletdata {
 }
 ```
 
+#### Get Wallet Json
+
+This is the same as the original GetWallet, except that it returns as json and outputs updated at time in iso format.
+
+You have to post with a empty dict `{}` as the payload, else it will error.
+
+It will, when having bought skip ad tickets, contain in the `items` dict the `skip_ad_ticket`, and last updated wallet time.
+
+**Default Response**
+
+```json
+{ "wallet": { "items": {}, "updatedAt": "2025-09-29T11:42:16.550165Z" } }
+```
+
+**Default Response (Bought Tickets)**
+
+```json
+{
+  "wallet": {
+    "items": { "skip_ad_ticket": 10 },
+    "updatedAt": "2025-09-29T11:42:16.550165Z"
+  }
+}
+```
+
+#### Consume
+
+This will consume a skip ad ticket for a provided offerid.
+
+Or the this offerid is the skip ad ticket that is consumed(no idea). \
+`44c48dba-68a0-4ef6-9df4-e8aa3b1bd913` is always provided regardless of the choosen purchase.
+
+**Send body**
+
+```json
+{
+  "offerId": "44c48dba-68a0-4ef6-9df4-e8aa3b1bd913"
+}
+```
+
+**Default Response**
+
+```json
+{
+  "wallet": {
+    "items": { "skip_ad_ticket": 10 },
+    "updatedAt": "2025-09-29T11:42:16.550165Z"
+  }
+}
+```
+
+**On empty string**
+
+```json
+{
+  "code": "invalid_argument",
+  "message": "bad request",
+  "details": [
+    {
+      "type": "google.rpc.BadRequest",
+      "value": "Ch0KCG9mZmVyX2lkEhF2YWx1ZSBpcyByZXF1aXJlZA",
+      "debug": {
+        "fieldViolations": [
+          { "field": "offer_id", "description": "value is required" }
+        ]
+      }
+    }
+  ]
+}
+```
+
+**On invalid uuid**
+
+```json
+{ "code": "unknown", "message": "request failed" }
+```
+
 ### Update Player
 
 Update fields
@@ -553,8 +635,8 @@ Get all valid values [HerrErde/subway-source](https://github.com/HerrErde/subway
 | Id | Type | Limit | Special |
 |---|---|---|---|
 | name | string | 2-15 characters, only alphabet letters, no numeric | 604800 seconds (7 days) regex: `^[a-zA-Z]+$` |
-| level | int | 100 |  |
-| highscore | int | 2147483646 | 2147483647 is the int32 limit, also just -1 |
+| level | int | 0-100 |  |
+| highscore | int | 0-999999999 | 999999999 |
 | stat_total_visited_destinations | int | 49 characters |  |
 | stat_total_games | int | 49 characters | Once set, [this value should only be increased](#stat_total_games_error) for details |
 | stat_owned_characters | int | 49 characters |  |
@@ -568,7 +650,7 @@ Get all valid values [HerrErde/subway-source](https://github.com/HerrErde/subway
 | selected_board_upgrades | string | 49 characters | Comma-separated list of upgrades (e.g., "default,trail") |
 | selected_board | string | 49 characters |  |
 | selected_background | string | 49 characters |  |
-| highscore_default | int | 49 characters |  |
+| highscore_default | int | 49 characters | 2147483647 is the int32 limit, also just -1 |
 | stat_achievements | int | 49 characters |  |
 | stat_total_top_run_medals_bronze | int | 49 characters |  |
 | stat_total_top_run_medals_silver | int | 49 characters |  |
