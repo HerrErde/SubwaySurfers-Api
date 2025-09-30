@@ -113,6 +113,7 @@ message StatusResponse {
 
 message GetWalletResponse {
   message WalletData {
+    map<string, uint64> items =  1;
     Time wallet_last_save_at = 2;
   }
   WalletData walletdata = 1;
