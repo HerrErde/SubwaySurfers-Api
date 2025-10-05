@@ -40,6 +40,9 @@ Json
 - [x] gdpr delete
 - [x] gdpr status
 - [x] profile
+  - [x] user
+  - [x] get
+  - [x] send
 - [ ] websdk
 - [x] redeem
 - [x] daily_challenge

@@ -260,6 +260,7 @@ When requesting the list of received invites, you get a list of `invite` bodies 
 The `user_uuid` that got the invite (your own), and a `PlayerResponse` body which contains the whole player metadata with uuid, and player details (game stats, collectables) and the `quota` with `max_friends`, `max_invites`, friend_count and `received_invite_count`
 
 <details>
+  <Summary>Received invites</Summary>
 
 ```
 received_invites {
@@ -310,6 +311,7 @@ quota  {
 </details>
 
 <details>
+  <Summary>Sent invites</Summary>
 
 ```
 sent_invites {
@@ -400,6 +402,7 @@ quota {
 When the invites list is empty, it will only show the quota
 
 <details>
+  <Summary>Invite Quota</Summary>
 
 ```
 quota  {
@@ -416,17 +419,7 @@ quota  {
 
 This will get you, you guessed right, your Friends AND Invites
 
-```
-quota  {
-  max_friends: 100
-  friend_count: 1
-  received_invite_count: 1
-  send_invite_count: 1
-  max_invites: 10
-}
-```
-
-Even when not send or not received an invite, the data will still show, but empty, except your own uuid.
+Even when not send or received an invite, the data will still show, but empty, except your own uuid.
 
 ```
   received_uuid {
@@ -576,6 +569,8 @@ It will, when having bought skip ad tickets, contain in the `items` dict the `sk
 
 #### Consume
 
+You can manipulate the tickets by using these instructions [hacks.md](./hacks.md#skip-ad-tickets)
+
 This will consume a skip ad ticket for a provided offerid.
 
 Or the this offerid is the skip ad ticket that is consumed(no idea). \
@@ -632,70 +627,71 @@ Update fields
 
 Get all valid values [HerrErde/subway-source](https://github.com/HerrErde/subway-source)
 
+<!-- prettier-ignore-start -->
+
 | Id | Type | Limit | Special |
 |---|---|---|---|
 | name | string | 2-15 characters, only alphabet letters, no numeric | 604800 seconds (7 days) regex: `^[a-zA-Z]+$` |
 | level | int | 0-100 |  |
-| highscore | int | 0-999999999 | 999999999 |
-| stat_total_visited_destinations | int | 49 characters |  |
-| stat_total_games | int | 49 characters | Once set, [this value should only be increased](#stat_total_games_error) for details |
-| stat_owned_characters | int | 49 characters |  |
-| stat_owned_characters_outfits | int | 49 characters |  |
-| stat_owned_boards | int | 49 characters |  |
-| stat_owned_boards_upgrades | int | 49 characters |  |
-| selected_portrait | string | 49 characters |  |
-| selected_frame | string | 49 characters |  |
-| selected_country | string | 49 characters | Only ISO 3166-1 alpha-2 codes (e.g., de, en, nl). Using other values (e.g., `test`) will display `countries.test.name` ([country_iso.txt](./country_iso.txt)) |
-| selected_character | string | 49 characters | Must follow the format `character.Outfit` (e.g., `jake.darkOutfit`) |
-| selected_board_upgrades | string | 49 characters | Comma-separated list of upgrades (e.g., "default,trail") |
-| selected_board | string | 49 characters |  |
-| selected_background | string | 49 characters |  |
-| highscore_default | int | 49 characters | 2147483647 is the int32 limit, also just -1 |
-| stat_achievements | int | 49 characters |  |
-| stat_total_top_run_medals_bronze | int | 49 characters |  |
-| stat_total_top_run_medals_silver | int | 49 characters |  |
-| stat_total_top_run_medals_gold | int | 49 characters |  |
-| stat_total_top_run_medals_diamond | int | 49 characters |  |
-| stat_total_top_run_medals_champion | int | 49 characters |  |
+| highscore | int | 0-2500000000 | 2500000000 |
+| selected_country | string | 50 characters | Only ISO 3166-1 alpha-2 codes (e.g., de, us, nl). Using other values e.g., `test` will display `countries.test.name` ([country_iso.txt](./country_iso.txt)) |
+| selected_character | string | 50 characters | Must follow the format `character.Outfit` (e.g., `jake.darkOutfit`) |
+| selected_board | string | 50 characters |  |
+| selected_board_upgrades | string | 50 characters | Comma-separated list of upgrades (e.g., "default,trail") |
+| selected_portrait | string | 50 characters |  |
+| selected_frame | string | 50 characters |  |
+| selected_background | string | 50 characters |  |
+| highscore_default | int | 50 characters | 2147483647 is the int32 limit, also just -1 |
+| stat_total_visited_destinations | int | 50 characters |  |
+| stat_total_games | int | 50 characters | Once set, this value should only be increased, see [value_errors](#value_errors) for details |
+| stat_owned_characters | int | 50 characters |  |
+| stat_owned_characters_outfits | int | 50 characters |  |
+| stat_owned_boards | int | 50 characters |  |
+| stat_owned_boards_upgrades | int | 50 characters |  |
+| stat_achievements | int | 50 characters | `-999999999` - `9999999999` values are shown correctly, above or below are shown as 0 |
+| stat_total_top_run_medals_bronze | int | 50 characters |  |
+| stat_total_top_run_medals_silver | int | 50 characters |  |
+| stat_total_top_run_medals_gold | int | 50 characters |  |
+| stat_total_top_run_medals_diamond | int | 50 characters |  |
+| stat_total_top_run_medals_champion | int | 50 characters |  |
 | equipped_badge_tier_`1-4` | int | the number 0-4 |  |
 | equipped_badge_`1-4` | str | a valid achivements id that has a badgeIconId set |  |
 
+<!-- prettier-ignore-end -->
+
+~~when setting the key to value of 50 the error will say that the metadata values have a limit of 50 characters, which seems wrong, only 49 works~~ \
+they fixed it
+
 all values inside the `metadata` dict have to be set in quotes even when they are integers e.g. \
 stat_total_visited_destinations: "1" \
-all values will allow strings but the values will then not show up in the the app correctly
-
-when setting the key to value of 50 the error will say that the metadata values have a limit of 50 characters, which seems wrong, only 49 works
+all fields will allow any strings but the values will then not correctly show up in the the app.
 
 you can still try to apply values out of the specified range, but it will
 
 1. return an error or
 2. will just return the unmodified values. \
-   e.g. when the `level` field value should be set to `101`, when before it is set `100` it only show 100.
-
-`highscore` it will return an error.
-
-When the fields `level` or `highscore` are set to 0, it will hide them in the response.
+   e.g. when the `level` field should be set to `101`, when before it is set `100` it only show `100`.
 
 #### Inputs
 
 the metadata map has a limit of at most 20 entries
 
-When updating a players values, these will not be mirrored into the player's save files, but will only be shown on a player request e.g when wanting to send you an invite.
-When requesting to see a profile via the Top Run list it will get the data from the `/profile` not the `GetPlayer` \
-When you look at your own Player Profile, the data won't appear there. (data is from your save file)
+When updating a players values, these will not be mirrored into the player's save files, but will only be shown on a player profile e.g searching a player via the player tag search. \
+When you look at your own Player Profile, the data won't appear there. (data is from your save file) \
+When requesting to see a profile via the Top Run list, it will get the data from the `/profile` not the `/GetPlayer`
 
-Only the name field is needed for any request \
-`level`, `highscore`, `metadata` are all optional and do not have to be included to make a successful request
+Atleast the the name field is required for any request \
+`level`, `highscore`, `metadata` are all optional and do not need to be included to make a successful request.
 
 Field ids are not required to have a valid value to make a successful request \
 When an invalid value is set, in the app users will be shown the default values e.g jake.default, jake_portrait ...
 
-you can set any valid value you want, and they are not restricted by having to unlock the cosmetic (e.g., dino_portrait).
+you can set any valid value you want, and they are not restricted by having to unlock the cosmetic in-game (e.g., dino_portrait).
 
-<h4 id="stat_total_games_error">stat_total_games error</h4>
-When setting the field <code>stat_total_games</code> to a value and then decrease the value <br>
-it will then show it as a minus value, by how ever much you have decreased it <br>
-e.g. when setting the value to <code>10</code> and then changing it to <code>9</code>, it will show in the response as <code>-1/25</code> (25 runs until a new level)
+<h4 id="value_errors">value errors</h4>
+When setting the field <code>stat_total_games</code> to a value and then decreasing that value,<br>
+it will show as a negative value, by how ever much you have decreased the previous value by.<br>
+E.g. when setting the value to <code>10</code> and then changing it to <code>9</code>, it will show in the response as <code>-1/25</code> (25 runs until a new level)
 <br><br>
 when setting the the field e.g. <code>selected_portrait</code> to a invalid value, it will show in the player preview the `jake_portrait` image and in the pop out, profile as a white box.
 <br><br>
@@ -703,15 +699,110 @@ sometimes it can take 1-5 seconds until the change is visibile in the app
 
 #### Name
 
-You can rename yourself by only changing the name value \
-This is the name value that shows everywhere up e.g. Player Profile, Top Run list
-After the change, all your requests have to use that new name until the `604800` second (7 days) refresh period expires and you can change it again
+You can rename yourself by changing the `name` value. \
+This is the name value that shows everywhere up e.g. Player Profile, Top Run list. \
+After the change, all your requests have to use that new name. \
+Chaning the name has a `604800` seconds (7 days) refresh period, which you'll have to wait until it expires and you can change it again. \
+The Name field only allowes letters, no numbers or special character
 
 #### Badges
 
-You can set badges to your player
+You can set badges to your player.
 
-the key `equipped_badge_` has the value of the achievement id e.g `achievement_08` here is a [list]() \
+The key `equipped_badge_` has the value of the achievement id e.g `achievement_08` here is a [list](https://github.com/HerrErde/subway-source/releases/latest/download/achievements_data.json)
+
+<details>
+<Summary>Achievement Badge list</Summary>
+Version: <code>3.52.0</code>
+
+```json
+[
+  {
+    "id": "achievement_03",
+    "badgeIconId": "icon_helpinghand"
+  },
+  {
+    "id": "achievement_04",
+    "badgeIconId": "icon_themorethemerrier"
+  },
+  {
+    "id": "achievement_06",
+    "badgeIconId": "icon_letterchaser"
+  },
+  {
+    "id": "achievement_07",
+    "badgeIconId": "icon_boardrider"
+  },
+  {
+    "id": "achievement_08",
+    "badgeIconId": "icon_alwaysontop"
+  },
+  {
+    "id": "achievement_11",
+    "badgeIconId": "icon_coincautious"
+  },
+  {
+    "id": "achievement_17",
+    "badgeIconId": "icon_mysterymaestro"
+  },
+  {
+    "id": "achievement_18",
+    "badgeIconId": "icon_noacrobatics"
+  },
+  {
+    "id": "achievement_21",
+    "badgeIconId": "icon_luckyduck"
+  },
+  {
+    "id": "achievement_24",
+    "badgeIconId": "icon_straightahead"
+  },
+  {
+    "id": "achievement_28",
+    "badgeIconId": "icon_therecanonlybeone"
+  },
+  {
+    "id": "achievement_29",
+    "badgeIconId": "icon_worldtour"
+  },
+  {
+    "id": "achievement_30",
+    "badgeIconId": "icon_socialsurfer"
+  },
+  {
+    "id": "achievement_31",
+    "badgeIconId": "icon_sugarrush"
+  },
+  {
+    "id": "achievement_32",
+    "badgeIconId": "icon_raceagainsttheclock"
+  },
+  {
+    "id": "achievement_33",
+    "badgeIconId": "icon_pictureperfect"
+  },
+  {
+    "id": "achievement_34",
+    "badgeIconId": "icon_demystified"
+  },
+  {
+    "id": "achievement_35",
+    "badgeIconId": "icon_massivemultiplier"
+  },
+  {
+    "id": "achievement_36",
+    "badgeIconId": "icon_brawlbesties"
+  },
+  {
+    "id": "achievement_37",
+    "badgeIconId": "icon_staroftheleague"
+  }
+]
+```
+
+</details>
+<br>
+
 `equipped_badge_tier_` will show the "tier" of the badge, which is the `claimState` of the achievements list and gives it just a different style
 
 ```json

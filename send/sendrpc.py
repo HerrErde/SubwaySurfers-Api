@@ -48,6 +48,8 @@ headers = {
     "TE": "trailers",
     "grpc-accept-encoding": "identity,gzip",
     "Content-Type": "application/grpc-web",
+    "genuine_app": "Genuine"
+    #"genuine_app": "SignatureMismatch"
     "Authorization": f"Bearer {identityToken}",
     # "SYBO-Vendor-Id": "7683d9dfb27fd5f5a86ca36bbdd78ccf",
     # "SYBO-Bundle-Id": "com.kiloo.subwaysurf",

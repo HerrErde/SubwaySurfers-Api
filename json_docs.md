@@ -18,13 +18,14 @@
     - [Sent Challenge](#sent-challenge)
     - [Send Tournament](#send-tournament)
     - [Get Tournament](#get-tournament)
-    - [profile](#profile)
+    - [Profile](#profile)
+      - [User Profile](#user-profile)
+      - [Send Profile](#send-profile)
+      - [Get Profile](#get-profile)
     - [Analytics](#analytics)
       - [Analytics Core](#analytics-core)
     - [Deep Links](#deep-links)
       - [Redeem](#redeem)
-  - [Other](#other)
-    - [Profile](#profile-1)
 
 ## General Notes
 
@@ -1111,18 +1112,18 @@ When setting the challengeID to `daily_challenge_nl`, you can only use the get_c
 
 </details>
 
-### profile
+### Profile
 
-This request returns the complete save data for a player.
+#### User Profile
 
-the response will output the save data in escaped json that you can decode using this [script](./send/scripts/profile_decode.py)
+This request returns the complete save data for a player from a uuid. \
+This includes every save file.
 
-All players listed in the tournament (Top Run) will return successfully. \
-This profile data can be requested using the `uid`, which is simply the player's uuid.
+The response will output the save data in escaped json that you can decode using this [script](./send/scripts/profile_decode.py)
 
-when the id doesn't exist then it will return with 404 error
+When the id doesn't exist then it will return with a 404 error.
 
-**truncated version with only wallet, dataConsent, missedRewar**dsModels
+**truncated version with only wallet, dataConsent, missedRewardsModels**
 
 <details>
 
@@ -1137,12 +1138,35 @@ when the id doesn't exist then it will return with 404 error
 
 </details>
 
+#### Send Profile
+
+With this request you can send your escaped json save files. \
+The profile data and version number can be anything and will get accepted.
+
+Version value: \
+`-999999999` - `999999999` values below or above the provided number range will result in a 400 error.
+
+The profile data can have any amount of data, a empty string results in a 500 error.
+
+The "profile" value is the same as the escaped json dict above.
+
+```json
+{
+  "profile": "",
+  "version": 2
+}
+```
+
+#### Get Profile
+
+This request returns the complete save data for the own player.
+
 ### Analytics
 
 There are many different types of events
 
 the vendor_id is the same as in the `SYBO-Vendor-Id` in the header of all the other requests \
-which changes every version
+which changes every version.
 
 #### Analytics Core
 
@@ -1170,7 +1194,9 @@ data_resp
 ### Deep Links
 
 ```
+
 https://subway-surfers.sng.link/A8yjk/diz7?_dl=subwaysurfers://&pcn=default&_p={"external_popup_request":"profile_view:{friendCode}"}
+
 ```
 
 #### Redeem
@@ -1193,8 +1219,8 @@ https://subway-surfers.sng.link/A8yjk/diz7?_dl=subwaysurfers://&pcn=default&_p={
 **Status codes**
 
 3. Already redeemed
-5. Promocode doesn't exist
-6. Promocode Expired
+4. Promocode doesn't exist
+5. Promocode Expired
 
 Redeem codes
 
@@ -1207,54 +1233,3 @@ discord10
 ```
 https://subway-surfers.sng.link/A8yjk/ucg6?_dl=subwaysurfers://&pcn=default&_p={"subway_promo_code":"{promoCode}"}
 ```
-
-## Other
-
-### Profile
-
-Finding out how the `/profile` gets its data
-
-One scenario I consider is that, since i have not seen the the app send the profile data directly to the server, \
-and the save data is needed to make the `/profile` request, \
-that they instead collect via the analytics, over time, about what you buy, collect, choose, and play, then generate your profile from that data.
-
-For example, ecn_inventory send some inventory data, although this is quite unlikely.
-
-<details>
-
-```json
-"custom": {
-  "itm_balance": {
-    "Hoverboards": 20,
-    "Keys": 8,
-    "HeadStarts": 3,
-    "ScoreBoosters": 7,
-    "Coins": 9175,
-    "EventCoins": 500,
-    "SprayCan": 15
-  },
-  "dur_balance": [
-    "character.jake",
-    "outfit.jake.default",
-    "character.dino",
-    "outfit.dino.default",
-    "board.default",
-    "board_upgrade.default.default",
-    "board.birthday2025",
-    "board_upgrade.birthday2025.default",
-    "profile_frame.default_frame",
-    "profile_frame.default_background",
-    "profile_frame.jake_portrait",
-    "profile_frame.tricky_portrait",
-    "profile_frame.fresh_portrait",
-    "profile_frame.yutani_portrait",
-    "profile_frame.spike_portrait",
-    "profile_frame.ella_portrait",
-    "profile_frame.king_portrait",
-    "profile_frame.tagbot_portrait",
-    "profile_frame.dino_portrait"
-  ]
-}
-```
-
-</details>

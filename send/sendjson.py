@@ -535,8 +535,57 @@ def gdpr_status():
 
 
 # Needs Authtoken
-def get_profile(uuid: str):
+def get_user_profile(uuid: str):
     url = api_url + f"/v2.0/profile/{uuid}"
+
+    with httpx.Client(http2=True) as client:
+        response = client.get(
+            url,
+            headers={
+                **headers,
+                "Authorization": f"Bearer {identityToken}",
+            },
+        )
+
+        try:
+            response.raise_for_status()
+            response_json = response.json()
+            print(response_json)
+        except httpx.HTTPStatusError as e:
+            print(f"Request failed: {e}")
+        except ValueError:
+            print("Invalid JSON response")
+
+
+def send_profile(profile: str, version: int):
+    url = api_url + f"/v2.0/profile"
+
+    data = {
+        "profile": profile,
+        "version": version,
+    }
+
+    with httpx.Client(http2=True) as client:
+        response = client.post(
+            url,
+            headers={
+                **headers,
+                "Authorization": f"Bearer {identityToken}",
+            },
+            json=data,
+        )
+
+        try:
+            response.raise_for_status()
+        except httpx.HTTPStatusError as e:
+            print(f"Request failed: {e}")
+        except ValueError:
+            print("Invalid JSON response")
+
+
+# Needs Authtoken
+def get_profile():
+    url = api_url + f"/v2.0/profile"
 
     with httpx.Client(http2=True) as client:
         response = client.get(
@@ -559,7 +608,7 @@ def get_profile(uuid: str):
 
 # Needs Authtoken
 def send_redeem(redeem_code: str, platform: int):
-    url = api_url + f"/v1.0/promocode/redeem"
+    url = api_url + "/v1.0/promocode/redeem"
 
     data = {"code": redeem_code, "platform": platform}
 
@@ -686,7 +735,7 @@ def get_challenge(
     challengeId: str,
     matchmakingId: str,
 ):
-    url = api_url + f"/v2.0/challenge/group"
+    url = api_url + "/v2.0/challenge/group"
 
     body = {
         "matchmakingStartValue": matchmakingStartValue,
@@ -709,6 +758,85 @@ def get_challenge(
         print(r.json())
 
 
+def send_score(
+    background: str = "default_background",
+    frame: str = "default_frame",
+    portrait: str = "jake_portrait",
+    character: str = "jake.default",
+    board: str = "default",
+    score: int = 1,
+    tournamentId: str = "daily_challenge_en",
+    matchmakingValue: int = 1,
+):
+    url = api_url + "/v2.0/challenge/score"
+
+    body = {
+        "scores": [
+            {
+                "metadta": [
+                    {"key": "background", "value": background},
+                    {"key": "frame", "value": frame},
+                    {"key": "portrait", "value": portrait},
+                    {"key": "character", "value": character},
+                    {"key": "board", "value": board},
+                    {"key": "score", "value": str(score)},
+                ],
+                "tournamentId": tournamentId,
+                "matchmakingValue": matchmakingValue,
+            }
+        ]
+    }
+
+    with httpx.Client(http2=True) as client:
+        r = client.post(
+            url,
+            headers={
+                **headers,
+                "Authorization": f"Bearer {identityToken}",
+            },
+            json=body,
+        )
+
+        print(r.status_code)
+
+
+def facebook_connect(token: str, nonce: str):
+    url = api_url + "/v2.0/auth/facebook/connect"
+
+    body = {
+        "token": token,
+        "nonce": nonce,
+    }
+
+    with httpx.Client(http2=True) as client:
+        r = client.post(
+            url,
+            headers={
+                **headers,
+                "Authorization": f"Bearer {identityToken}",
+            },
+            json=body,
+        )
+
+        print(r.status_code)
+        print(r.json())
+
+
+def facebook_disconnect(token: str, nonce: str):
+    url = api_url + "/v2.0/auth/facebook/disconnect"
+
+    with httpx.Client(http2=True) as client:
+        r = client.post(
+            url,
+            headers={
+                **headers,
+                "Authorization": f"Bearer {identityToken}",
+            },
+        )
+
+        print(r.status_code)
+
+
 # get_mail()
 # crosspromo()
 # auth_register()
@@ -724,7 +852,9 @@ def get_challenge(
 # abtesting()
 # send_tournament("de", "9174e7104115388308819319bdd411b0a11b1082")
 # get_tournament()
-# get_profile("01975933-cb36-7896-99c3-5ad6bd1a4dc2")
+# get_user_profile("01975933-cb36-7896-99c3-5ad6bd1a4dc2")
+# send_profile("", 2)
+# get_profile()
 # get_networkcheck()
 # get_cflocation()
 # get_servertime()

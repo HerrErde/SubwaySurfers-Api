@@ -724,4 +724,58 @@ def send_analytics(
         print("Response Status Code:", r.status_code)
 
 
+# TODO
+def send_analytics_blob():
+
+    url = api_url + "/v1/analytics/blob"
+
+    data = {
+        "event_id": "",
+        "event_timestamp": 1759499363230,
+        "event_name": "user_engagement",
+        "device": {
+            "category": "Handheld",
+            "model": "",
+            "os": "",
+            "locale": "en-US",
+            "os_brand": "",
+            "os_device": "",
+            "os_model": "",
+            "tz_offset_sec": 7200,
+        },
+        "core": {
+            "platform": "Android",
+            "app_id": "com.kiloo.subwaysurf",
+            "app_version": "3.52.4",
+            "user_id": "",
+            "vendor_id": "",
+            "sample_val": 70,
+            "session_id": 1759499096799,
+            "session_no": 111,
+            "session_time_ms": 70793,
+            "install_source": "",
+            "backend_id": "01999632-e38e-7cf6-9aff-892dd477a3e4",
+            "pkg": "com.sybo.analytics@1.10.2",
+        },
+        "common": {
+            "game_data_version": "3.52.4",
+            "net_ping": 14,
+            "net_type": "ConnectedToData",
+            "genuine_app": 3,
+            "ab_list": {"default": "default"},
+            "profile_id": "",
+        },
+        "custom": {},
+    }
+
+    with httpx.Client(http2=True) as client:
+        r = client.post(
+            url,
+            headers=headers,
+            json=data,
+        )
+        r.raise_for_status()
+        print("Response Status Code:", r.status_code)
+
+
 analytics()
