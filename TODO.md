@@ -52,7 +52,6 @@ Json
 
 Tools \
 <https://grpc.io/docs/guides/status-codes> \
-<https://protogen.marcgravell.com> \
 <https://good.tools/protobuf-decoder> \
 <https://protobuf-decoder.netlify.app> \
 <https://github.com/sandermvanvliet/ProtobufDecoder> \

@@ -79,3 +79,9 @@ python sendjson.py
 
 > **Note:** Always use a valid `identityToken` in your requests.
 > **Tip:** Refresh your token regularly and update it wherever it’s used.
+
+### Development
+
+If you want to decode the requests yourself, root your phone, use an emulator, or patch the app.
+
+Then use **PCAPdroid** to capture traffic and export it as a PCAP file. Open the file in **Wireshark**, locate the gRPC request (filter by searching "gprc"), and inspect the **Protocol Buffer** section. From there, copy the `value` inside the relevant `Field()`. Then you can decode a the Protobuf, in somehing like [protobuf-decoder](https://good.tools/protobuf-decoder). The same can be done with the response.

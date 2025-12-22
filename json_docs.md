@@ -2,34 +2,42 @@
 
 ## Table of Contents
 
+<details>
+  <summary>Table of Contents</summary>
+
 - [Explanations](#explanations)
   - [Table of Contents](#table-of-contents)
   - [General Notes](#general-notes)
-  - [Json](#json)
     - [Register](#register)
     - [Refresh](#refresh)
-    - [Manifest](#manifest)
-    - [Gamedata](#gamedata)
-    - [Media](#media)
-    - [Assets](#assets)
-    - [GDPR status](#gdpr-status)
-    - [GDPR delete](#gdpr-delete)
-    - [Get Challenge](#get-challenge)
-    - [Sent Challenge](#sent-challenge)
-    - [Send Tournament](#send-tournament)
-    - [Get Tournament](#get-tournament)
+    - [Content](#content)
+      - [Manifest](#manifest)
+      - [Gamedata](#gamedata)
+      - [Media](#media)
+      - [Assets](#assets)
+    - [GDPR](#gdpr)
+      - [GDPR delete](#gdpr-delete)
+      - [GDPR status](#gdpr-status)
+    - [Challenge](#challenge)
+      - [Sent Challenge](#sent-challenge)
+      - [Get Challenge](#get-challenge)
+    - [Tournament](#tournament)
+      - [Send Tournament](#send-tournament)
+      - [Get Tournament](#get-tournament)
     - [Profile](#profile)
-      - [User Profile](#user-profile)
-      - [Send Profile](#send-profile)
       - [Get Profile](#get-profile)
+      - [Get Profile](#get-profile-1)
+      - [Send Profile](#send-profile)
     - [Analytics](#analytics)
       - [Analytics Core](#analytics-core)
     - [Deep Links](#deep-links)
       - [Redeem](#redeem)
 
+</details>
+
 ## General Notes
 
-All knowledge is for versions `3.52.0`
+All knowledge is for versions `3.56.0`
 
 > [!WARNING]
 > Changes are expected to happen
@@ -43,35 +51,72 @@ this is a player uuid `0197351b-ae06-7a3f-8576-0e3d5b95a280`
 
 Some response bodies that contain repeating data or with minor changes will be truncated to avoid repetition.
 
-## Json
+The default api url is subway.prod.sybo.net
 
 ### Register
+
+- POST `/v2.0/auth/register`
+- Will register a player account
+- Sample request (2025-12-19):
+  POST /v2.0/auth/register
+  Authorization: `Bearer <identityToken>`
+
+- Sample response:
+
+  ```json
+  {
+    "idToken": "eyJhbGciOiJQUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIwMTk2OGMzYS0zZmVhLTdhYmMtODk3Yy1lMWExO...",
+    "idTokenTtl": 604800,
+    "refreshToken": "eyJhbGciOiJQUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIwMTk2NzJiOS0yZThiLTc0NWEtOWQ1My1lMzg4MT...",
+    "user": { "id": "01968c3a-3fea-7abc-897c-e1a1814ba489", "links": [] }
+  }
+  ```
 
 This will create a "empty" account that only creates a user with which you populate with a player \
 It generates a idenity and a refresh token, with a ttl (time to live)
 
-```json
-{
-  "idToken": "eyJhbGciOiJQUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIwMTk2OGMzYS0zZmVhLTdhYmMtODk3Yy1lMWExO...",
-  "idTokenTtl": 604800,
-  "refreshToken": "eyJhbGciOiJQUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIwMTk2NzJiOS0yZThiLTc0NWEtOWQ1My1lMzg4MT...",
-  "user": { "id": "01968c3a-3fea-7abc-897c-e1a1814ba489", "links": [] }
-}
-```
-
 ### Refresh
 
-The Refresh request is used to refresh the Accounts identity token, and continue using the account after ttl.
+- POST `/v2.0/auth/refresh`
+- Get the status of the player deletion
+- Sample request (2025-12-19):
+  POST /v2.0/auth/refresh
+  Authorization: `Bearer <identityToken>`
 
-It will return the same json as the register response
+  Body:
 
-### Manifest
+  ```json
+  {
+    "refreshToken": "eyJhbGciOiJQUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIwMTk2NzJiOS0yZThiLTc0NWEtOWQ1My1lMzg4MT...",
+    "fbAccessToken": null
+  }
+  ```
 
-From the Manifest you get the version specific version data \
-You get the secret by extracting it from the game file (apk or ipa) \
-In the `assets/settings/sybo.tower.default.json` (ipa is `Payload/SubwaySurf.app/Data/Raw/settings/sybo.tower.default.json`) file contains a key `Secret` with the version specific secret.
+- Sample response:
 
-For specific experiments you can set `ab_google_play`, `ab_revive_codechange`
+  ```json
+  {
+    "idToken": "eyJhbGciOiJQUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIwMTk2OGMzYS0zZmVhLTdhYmMtODk3Yy1lMWExO...",
+    "idTokenTtl": 604800,
+    "refreshToken": "eyJhbGciOiJQUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIwMTk2NzJiOS0yZThiLTc0NWEtOWQ1My1lMzg4MT...",
+    "user": { "id": "01968c3a-3fea-7abc-897c-e1a1814ba489", "links": [] }
+  }
+  ```
+
+The Refresh request is used to refresh the accounts identity token, and continue using the account after ttl.
+
+### Content
+
+#### Manifest
+
+Url is <https://manifest.tower.sybo.net>
+
+- GET `/v1.0/{game}/{version}/{type}/{secret}/{experiment}/manifest.json`
+- Get the manifest of a game version
+- Sample request (2025-12-20):
+  GET /v1.0/{game}/{version}/{type}/{secret}/{experiment}/manifest.json
+
+For specific experiments you can set `ab_google_play`, `ab_revive_codechange` else dont set it.
 
 <details>
   <summary>Android production</summary>
@@ -155,6 +200,14 @@ For specific experiments you can set `ab_google_play`, `ab_revive_codechange`
 
 </details>
 
+<br>
+
+Notes: \
+ From this data you get the version specific manifest data. \
+ Which gives useful data like gamedata hash and lifecycle. \
+ You get the secret by extracting it from the game file (apk or ipa) \
+ The `assets/settings/sybo.tower.default.json` (ipa is `Payload/SubwaySurf.app/Data/Raw/settings/sybo.tower.default.json`) file contains a key called `Secret`, with the version specific secret.
+
 **Url examples**
 
 ```
@@ -168,21 +221,28 @@ https://manifest.tower.sybo.net/v1.0/subway/3.44.2/android/s8B88pVbhzpKmvX6BV0u/
 _Default Schema_
 
 ```
-https://manifest.tower.sybo.net/v1.0/{game}/{version}/{platform}/{secretToken}/manifest.json
+https://manifest.tower.sybo.net/v1.0/{game}/{version}/{platform}/{secret}/manifest.json
 ```
 
 _Experiment Schema_
 
 ```
-https://manifest.tower.sybo.net/v1.0/{game}/{version}/{platform}/{secretToken}/{experiment}/manifest.json
+https://manifest.tower.sybo.net/v1.0/{game}/{version}/{platform}/{secret}/{experiment}/manifest.json
 ```
 
-When using the v2.0 schema, you can use the `archive` endpoint to get a zip of the game files. \
-It seems like the v2.0 schmea has only the `archive` endpoint, all other do not exist
+- GET `/v2.0/{game}/{version}/{type}/{secret}/{experiment}/archive.zip`
+- Get the manifest of a game version
+- Sample request (2025-12-20):
+  GET /v2.0/{game}/{version}/{type}/{secret}/{experiment}/archive.zip
+
+When using the v2.0 schema, you can use the `archive.zip` endpoint to get a zip of the game files. \
+It seems like the v2.0 schema only the `archive` endpoint, all other do not exist.
 
 ```
 https://manifest.tower.sybo.net/v2.0/subway/3.49.1/android/junpNkV78FJxO4dlGAbO/archive.zip
 ```
+
+The archive.zip contains the manifest.json aswell as in a `data` folder the gamedata files.
 
 ```
 manifest.json
@@ -192,26 +252,56 @@ data/
    ...
 ```
 
-### Gamedata
+#### Gamedata
 
-You can get the gamedata/tower files in bypass of the old depreciated method of extracting the apk gamefile or ipa gamefile (ipa still works), using from the manifest request contained `gamedata` hash value
-(state 3.48.5)
+Url is <https://gamedata.tower.sybo.net>
 
-You can request the `manifest.json`, which contains the manifest of all the existing files in gamedata.
+- GET `/v1.0/{game}/{secret}/{filename}.json`
+- Get gamedata files of manifest version
+- Sample request (2025-12-20):
+  GET /v1.0/{game}/{secret}/{filename}.json
+
+You can get the gamedata/tower files in bypass of the old depreciated method of extracting them from apk or ipa (ipa still works), using from the manifest request contained `gamedata` hash value
+(state 3.56.0)
+
+You can request the `manifest.json`, which contains the manifest of all the existing files in the gamedata.
 
 ```json
-{"experiment":"default","game":"subway","objects":{"achievements":{"filename":"achievements.json","key":"2bed33daedf13ae310d90edff852600598e665e3"},"adplacements":{"filename":"adplacements.json","key":"2010b70022bba2451310a6e60166a4b31f21fe0b"},"assemblyevents":{"filename":"assemblyevents.json","key":"4fa66108ddd7f8bead20b40f6a8b505a9cdf098f"}truncated...},"spec":"v1.0","version":"3.46.0"}
+{
+  "experiment": "default",
+  "game": "subway",
+  "objects": {
+    "achievements": {
+      "filename": "achievements.json",
+      "key": "2bed33daedf13ae310d90edff852600598e665e3"
+    },
+    "adplacements": {
+      "filename": "adplacements.json",
+      "key": "2010b70022bba2451310a6e60166a4b31f21fe0b"
+    },
+    "assemblyevents": {
+      "filename": "assemblyevents.json",
+      "key": "4fa66108ddd7f8bead20b40f6a8b505a9cdf098f"
+    }
+    truncated
+  },
+  "spec": "v1.0",
+  "version": "3.46.0"
+}
 ```
 
 ```
 https://gamedata.tower.sybo.net/v1.0/subway/c84ca921a6249f9fa201444ed03f54238e8aaaa2/manifest.json
 ```
 
-```
-https://gamedata.tower.sybo.net/v1.0/{game}/{gamedataSecret}/{filename}.json
-```
+#### Media
 
-### Media
+Url is <https://media.sybo.net>
+
+- GET `/{game}/cross_promotion/{promotion}/Image/{image}`
+- Get media files
+- Sample request (2025-12-20):
+  GET /{game}/cross_promotion/{promotion}/Image/{image}
 
 ```
 https://media.sybo.net/{game}/cross_promotion/{promotion}/Image/{image}
@@ -220,39 +310,105 @@ https://media.sybo.net/{game}/cross_promotion/{promotion}/Image/{image}
 known game promotions \
 `ssmatch`, `ssblast`, `brim`, `external`
 
-### Assets
+#### Assets
+
+Url is <https://assets.tower.sybo.net>
+
+- GET `/`
+- Get game assets files
+- Sample request (2025-12-20):
+  GET /
+
+When getting the root of the url it shows what seems to be a list of a bucket
+
+<details>
+  <summary>Assets Response</summary>
+
+```xml
+<ListBucketResult>
+<Name>sybogames-tower-assets</Name>
+<Prefix/>
+<Marker/>
+<NextMarker>
+v1.0/BRIM/20b6aac8-db25-45b7-b2e7-35efdf27a83d/catalog/1.0.0/catalog_2024.02.27.05.56.51.hash
+</NextMarker>
+<IsTruncated>true</IsTruncated>
+<Contents>
+<Key>
+v1.0.0/ReleaseTesterApp/08ad4fa1-1fb6-4a8c-a782-de8c725f3e5e/addressable_data
+</Key>
+<Generation>1672672180447593</Generation>
+<MetaGeneration>1</MetaGeneration>
+<LastModified>2023-01-02T15:09:40.478Z</LastModified>
+<ETag>"d41d8cd98f00b204e9800998ecf8427e"</ETag>
+<Size>0</Size>
+</Contents>
+...
+<Contents>
+<Key>
+v1.0/Atlas/a820cd4f-b422-4e04-8c46-b19db72f0b99/catalog/1.0.0/catalog_2021.11.25.10.14.22.json
+</Key>
+<Generation>1637836239952983</Generation>
+<MetaGeneration>1</MetaGeneration>
+<LastModified>2021-11-25T10:30:39.996Z</LastModified>
+<ETag>"893cf305a3c4046801ffb92dc866f35d"</ETag>
+<Size>9017</Size>
+</Contents>
+...
+<Contents>
+<Key>
+v1.0/BRIM/0004b3b2-328d-40a6-8d5c-cdb07dbfa7bc/catalog/1.0.0/catalog_2023.11.15.10.18.13.hash
+</Key>
+<Generation>1700044260436100</Generation>
+<MetaGeneration>1</MetaGeneration>
+<LastModified>2023-11-15T10:31:00.468Z</LastModified>
+<ETag>"fb9d3d1895d092d22581315f15d39373"</ETag>
+<Size>32</Size>
+</Contents>
+```
+
+</details>
+
+- GET `v1.0/{game}/{bundleId}/{type}/{version}/{file}`
+- Get game assets files
+- Sample request (2025-12-20):
+  GET v1.0/{game}/{bundleId}/{type}/{version}/{file}
+
+```
+https://assets.tower.sybo.net/v1.0/subway/f78e0ec2-cd8a-4d77-8c25-ad227d468816/bundle/1.0.0/boardspreviews-remote_assets_meangreenmachine_default_preview_big_8e39610ba8a1458c7e1479316c158261.bundle
+```
 
 This request will return the asset in the UnityFs format
 
-```
-http://assets.tower.sybo.net/v1.0/{game}/{bundleId}
-```
-
-It can have the User Agent `UnityPlayer/2022.3.24f1 (UnityWebRequest/1.0, libcurl/8.5.0-DEV)`
-
-Inside the `assets/aa/catalog.json` file, under the `m_InternalIds` list, you’ll find all the file entries. These are links starting with `sybo://`, such as:
+Inside the apk (`assets/aa/catalog.json`) or ios (`Payload/SubwaySurf.app/Data/Raw/aa/catalog.json`) `catalog.json` file, under the `m_InternalIds` list, you’ll find all the file entries. These are links starting with `sybo://`, such as:
 
 `sybo://9917a9a0-0de9-40fb-bb80-392ee596f705/bundle/1.0.0/characters-remote_assets_pixeljake_default_outfit_config_7a3d5cbdbef0e42b386ceea8f110c324.bundle`
 
 These entries reference the actual asset bundles used by the game.
 
-### GDPR status
+### GDPR
 
-This is the account delete status request, with wich you get the status of the current account delete request.
+#### GDPR delete
 
-```json
-{
-  "job": {
-    "kind": 1,
-    "state": 0,
-    "url": "",
-    "createdAt": "2025-05-22T05:14:26.561428058Z",
-    "endedAt": null
+- POST `/v1.0/gdpr/delete`
+- Requests a deletion
+- Sample request (2025-12-19): \
+  POST /v1.0/gdpr/delete \
+  Authorization: `Bearer <identityToken>`
+
+- Sample response:
+
+  ```json
+  {
+    "job": {
+      "kind": 1,
+      "state": 0,
+      "url": "",
+      "createdAt": "2025-12-10T18:02:01.581790628Z",
+      "endetAt": null
+    }
   }
-}
-```
-
-### GDPR delete
+  ```
 
 This is the account deletion request that will delete your account.
 
@@ -261,108 +417,39 @@ when you are friends with a player you are removed from their friends list
 
 it will only delete your `player` but not your `account`, that means you can just use `CreatePlayer` request again without the need of registering again.
 
-```json
-{
-  "job": {
-    "kind": 1,
-    "state": 1,
-    "url": "",
-    "createdAt": "2025-05-22T05:14:26.561428Z",
-    "endedAt": "2025-05-22T05:14:27.189561Z"
+#### GDPR status
+
+- GET `/v1.0/gdpr/status`
+- Get the status of the player deletion
+- Sample request (2025-12-19):
+  GET /v1.0/gdpr/status \
+  Authorization: `Bearer <identityToken>` \
+  Body:
+
+  ```json
+  { "gaid": "00000000-0000-0000-0000-000000000000" }
+  ```
+
+- Sample response:
+
+  ```json
+  {
+    "job": {
+      "kind": 1,
+      "state": 1,
+      "url": "",
+      "createdAt": "2025-12-10T18:02:01.581790628Z",
+      "endetAt": "2025-12-10T18:02:02.566636Z"
+    }
   }
-}
-```
+  ```
 
-### Get Challenge
+This is the account delete status request, with wich you get the status of the current account delete request.
 
-<details>
-<summary>Request details</summary>
+### Challenge
 
-`GET`
-
-```
-/v2.0/challenge/{challenge}_{c}/group
-```
-
-challenge like `daily_challenge_en`, `staged_tta_en`
-
-the country code has to be the same as in the [send](#sent-challenge) request as `matchmakingId` value
-
-</details>
-
-<details>
-
-```json
-{
-  "group": {
-    "start": "2025-07-04T11:22:00Z",
-    "end": "2025-07-05T11:22:00Z",
-    "players": [
-      {
-        "uid": "00d2487c-8bc3-460d-aeb5-de8754878bd2",
-        "matchmakingValue": 6,
-        "name": "",
-        "picture": "",
-        "socialIds": [],
-        "metadata": [
-          { "key": "background", "value": "default_background" },
-          { "key": "frame", "value": "default_frame" },
-          { "key": "portrait", "value": "jake_portrait" },
-          { "key": "character", "value": "tricky.default" },
-          { "key": "board", "value": "default" },
-          { "key": "score", "value": "44333" }
-        ]
-      },
-      {
-        "uid": "01961538-d5d2-74f3-953a-d4e13fdffa51",
-        "matchmakingValue": 16,
-        "name": "",
-        "picture": "",
-        "socialIds": [],
-        "metadata": [
-          { "key": "background", "value": "default_background" },
-          { "key": "frame", "value": "default_frame" },
-          { "key": "portrait", "value": "missmaia_illustration_portrait" },
-          { "key": "character", "value": "jake.darkOutfit" },
-          { "key": "board", "value": "fanTastic" },
-          { "key": "score", "value": "170558" }
-        ]
-      },
-      truncated 7x
-    ]
-  }
-}
-```
-
-</details>
-
-### Sent Challenge
-
-<details>
-<summary>Request details</summary>
-
-`POST`
-
-```
-/v2.0/challenge/group
-```
-
-```json
-{
-  "matchmakingStartValue": ...,
-  "gamedataHash": ...,
-  "challengeID": ...,
-  "matchmakingId": ...
-}
-```
-
-</details>
-    
-This request is made when opening the view of a challenge in the Events tab
-
-It is not known from what the `matchmakingStartValue` is from
-
-<details>
+<details id="challenge_response">
+  <summary>Challenge Response</summary>
 
 ```json
 {
@@ -416,716 +503,564 @@ It is not known from what the `matchmakingStartValue` is from
 
 </details>
 
+#### Sent Challenge
+
+- POST `/v2.0/challenge/group`
+- Sets the Challenge Group
+- Sample request (2025-12-19): \
+  POST /v2.0/challenge/group \
+  Authorization: `Bearer <identityToken>` \
+  Body:
+
+  ```json
+  {
+    "matchmakingStartValue": 29,
+    "gamedataHash": "70409a79f9500482a5075052a93f15be22fc1383",
+    "challengeID": "daily_challenge_de",
+    "matchmakingId": "dailyChallenge"
+  }
+  ```
+
+- Sample response: \
+   See above [challenge_response](#challenge_response)
+
+This request is made when opening the view of a challenge in the Events tab
+
+It is not known from what the `matchmakingStartValue` is from
+
 **Already send request**
 
 ```json
 { "error": "request failed", "kind": 6 }
 ```
 
-When setting the challengeID to `daily_challenge_nl`, you can only use the get_challenge request with the challenge group for that country, here `nl`
+When setting the challengeID to `daily_challenge_nl`, you will only be able to use the get_challenge request with the challenge group for that country, here `nl`.
 
-### Send Tournament
+#### Get Challenge
 
-<details>
+- GET `/v2.0/challenge/<challenge>/group`
+- Gets the Challenge Group
+- Sample request (2025-12-19): \
+  GET /v2.0/challenge/<challenge\>/group \
+  Authorization: `Bearer <identityToken>`
+
+- Sample response: \
+   See above [challenge_response](#challenge_response)
+
+The Challenge name is build like this \
+the challenge type like: `daily_challenge`, `staged_tta` \
+and the country code: `en`, `nl`
+
+```
+<challenge>_<c>
+```
+
+the country code has to be the same as in the [send](#sent-challenge) request as `matchmakingId` value
+
+### Tournament
+
+<details id="tournament_response">
+  <summary>Tournament Response</summary>
 
 ```json
 {
-   "group":{
-      "week":24,
-      "start":"2025-06-09T10:00:00Z",
-      "end":"2025-06-16T10:00:00Z",
-      "tournamentId":"nl",
-      "brackets":{
-         "current":{
-            "matchmaking":{
-               "groupSize":20,
-               "bracketMaxUsers":{
-                  "champion":1
-               },
-               "bracketSort":{
-                  "bronze":1,
-                  "diamond":4,
-                  "gold":3,
-                  "none":0,
-                  "silver":2
-               },
-               "bracketPercentage":{
-                  "bronze":0.2,
-                  "diamond":0.02,
-                  "gold":0.05,
-                  "none":0.63,
-                  "silver":0.1
-               },
-               "bracketDistribution":{
-                  "bronze":{
-                     "bronze":8,
-                     "diamond":1,
-                     "gold":3,
-                     "none":3,
-                     "silver":4
-                  },
-                  "diamond":{
-                     "bronze":2,
-                     "diamond":8,
-                     "gold":6,
-                     "none":0,
-                     "silver":3
-                  },
-                  "gold":{
-                     "bronze":2,
-                     "diamond":4,
-                     "gold":7,
-                     "none":1,
-                     "silver":5
-                  },
-                  "none":{
-                     "bronze":5,
-                     "diamond":1,
-                     "gold":2,
-                     "none":8,
-                     "silver":3
-                  },
-                  "silver":{
-                     "bronze":4,
-                     "diamond":2,
-                     "gold":4,
-                     "none":2,
-                     "silver":7
-                  }
-               }
+  "group": {
+    "week": 51,
+    "start": "2025-12-15T09:00:00Z",
+    "end": "2025-12-22T09:00:00Z",
+    "tournamentId": "de",
+    "brackets": {
+      "current": {
+        "matchmaking": {
+          "groupSize": 20,
+          "bracketMaxUsers": { "champion": 1 },
+          "bracketSort": {
+            "bronze": 1,
+            "diamond": 4,
+            "gold": 3,
+            "none": 0,
+            "silver": 2
+          },
+          "bracketPercentage": {
+            "bronze": 0.2,
+            "diamond": 0.02,
+            "gold": 0.05,
+            "none": 0.63,
+            "silver": 0.1
+          },
+          "bracketDistribution": {
+            "bronze": {
+              "bronze": 8,
+              "diamond": 1,
+              "gold": 3,
+              "none": 3,
+              "silver": 4
             },
-            "bounds":{
-               "bronze":1508838,
-               "diamond":11889620,
-               "gold":6368082,
-               "none":14728,
-               "silver":3087864
-            }
-         },
-         "past":{
-            "matchmaking":{
-               "groupSize":20,
-               "bracketMaxUsers":{},
-               "bracketSort":{
-                  "bronze":1,
-                  "diamond":4,
-                  "gold":3,
-                  "none":0,
-                  "silver":2
-               },
-               "bracketPercentage":{
-                  "bronze":0.2,
-                  "diamond":0.02,
-                  "gold":0.05,
-                  "none":0.63,
-                  "silver":0.1
-               },
-               "bracketDistribution":{
-                  "bronze":{
-                     "bronze":8,
-                     "diamond":1,
-                     "gold":3,
-                     "none":3,
-                     "silver":4
-                  },
-                  "diamond":{
-                     "bronze":2,
-                     "diamond":8,
-                     "gold":6,
-                     "none":0,
-                     "silver":3
-                  },
-                  "gold":{
-                     "bronze":2,
-                     "diamond":4,
-                     "gold":7,
-                     "none":1,
-                     "silver":5
-                  },
-                  "none":{
-                     "bronze":5,
-                     "diamond":1,
-                     "gold":2,
-                     "none":8,
-                     "silver":3
-                  },
-                  "silver":{
-                     "bronze":4,
-                     "diamond":2,
-                     "gold":4,
-                     "none":2,
-                     "silver":7
-                  }
-               }
+            "diamond": {
+              "bronze": 2,
+              "diamond": 8,
+              "gold": 6,
+              "none": 0,
+              "silver": 3
             },
-            "bounds":{
-               "bronze":814870,
-               "diamond":11364990,
-               "gold":5607162,
-               "none":3,
-               "silver":2876725
+            "gold": {
+              "bronze": 2,
+              "diamond": 4,
+              "gold": 7,
+              "none": 1,
+              "silver": 5
+            },
+            "none": {
+              "bronze": 5,
+              "diamond": 1,
+              "gold": 2,
+              "none": 8,
+              "silver": 3
+            },
+            "silver": {
+              "bronze": 4,
+              "diamond": 2,
+              "gold": 4,
+              "none": 2,
+              "silver": 7
             }
-         }
+          }
+        },
+        "bounds": {
+          "bronze": 1111625,
+          "diamond": 11671820,
+          "gold": 5644449,
+          "none": 1,
+          "silver": 2978277
+        }
       },
-      "players":[
-         {
-            "uid":"019718f5-d1aa-7443-a8e2-26ebaf3d891e",
-            "scores":{
-               "current":1292646,
-               "past":2045888
+      "past": {
+        "matchmaking": {
+          "groupSize": 20,
+          "bracketMaxUsers": { "champion": 1 },
+          "bracketSort": {
+            "bronze": 1,
+            "diamond": 4,
+            "gold": 3,
+            "none": 0,
+            "silver": 2
+          },
+          "bracketPercentage": {
+            "bronze": 0.2,
+            "diamond": 0.02,
+            "gold": 0.05,
+            "none": 0.63,
+            "silver": 0.1
+          },
+          "bracketDistribution": {
+            "bronze": {
+              "bronze": 8,
+              "diamond": 1,
+              "gold": 3,
+              "none": 3,
+              "silver": 4
             },
-            "socialIds":[],
-            "metadata":[
-               {
-                  "key":"board",
-                  "value":"monster"
-               },
-               {
-                  "key":"score",
-                  "value":"1292646"
-               },
-               {
-                  "key":"background",
-                  "value":"default_background"
-               },
-               {
-                  "key":"frame",
-                  "value":"default_frame"
-               },
-               {
-                  "key":"portrait",
-                  "value":"boombot_portrait"
-               },
-               {
-                  "key":"character",
-                  "value":"boombot.default"
-               }
-            ],
-            "name":"",
-            "picture":""
-         },
-         {
-            "uid":"01974516-0105-7c57-b9e2-b91865bf206d",
-            "scores":{
-               "current":35062,
-               "past":0
+            "diamond": {
+              "bronze": 2,
+              "diamond": 8,
+              "gold": 6,
+              "none": 0,
+              "silver": 3
             },
-            "socialIds":[],
-            "metadata":[
-               {
-                  "key":"score",
-                  "value":"35062"
-               },
-               {
-                  "key":"background",
-                  "value":"default_background"
-               },
-               {
-                  "key":"frame",
-                  "value":"default_frame"
-               },
-               {
-                  "key":"portrait",
-                  "value":"jake_portrait"
-               },
-               {
-                  "key":"character",
-                  "value":"jake.darkOutfit"
-               },
-               {
-                  "key":"board",
-                  "value":"starboard"
-               }
-            ],
-            "name":"",
-            "picture":""
-         },
-         {
-            "uid":"8899c41a-1ba2-413c-b1ce-fe82e5597588",
-            "scores":{
-               "current":1257032,
-               "past":0
+            "gold": {
+              "bronze": 2,
+              "diamond": 4,
+              "gold": 7,
+              "none": 1,
+              "silver": 5
             },
-            "socialIds":[],
-            "metadata":[
-               {
-                  "key":"portrait",
-                  "value":"fresh_graffiti_portrait"
-               },
-               {
-                  "key":"character",
-                  "value":"finn.default"
-               },
-               {
-                  "key":"board",
-                  "value":"superhero"
-               },
-               {
-                  "key":"score",
-                  "value":"1257032"
-               },
-               {
-                  "key":"background",
-                  "value":"default_background"
-               },
-               {
-                  "key":"frame",
-                  "value":"default_frame"
-               }
-            ],
-            "name":"",
-            "picture":""
-         },
-         {
-            "uid":"01952c98-1754-7e58-a63f-78e3f1574b0c",
-            "scores":{
-               "current":73016,
-               "past":0
+            "none": {
+              "bronze": 5,
+              "diamond": 1,
+              "gold": 2,
+              "none": 8,
+              "silver": 3
             },
-            "socialIds":[],
-            "metadata":[
-               {
-                  "key":"portrait",
-                  "value":"tagbot_portrait"
-               },
-               {
-                  "key":"character",
-                  "value":"frank.clownOutfit"
-               },
-               {
-                  "key":"board",
-                  "value":"starboard"
-               },
-               {
-                  "key":"score",
-                  "value":"73016"
-               },
-               {
-                  "key":"background",
-                  "value":"default_background"
-               },
-               {
-                  "key":"frame",
-                  "value":"default_frame"
-               }
-            ],
-            "name":"",
-            "picture":""
-         },
-         {
-            "uid":"8680a2cd-b59b-4852-984f-f1938d4a8608",
-            "scores":{
-               "current":1119541,
-               "past":0
-            },
-            "socialIds":[],
-            "metadata":[
-               {
-                  "key":"background",
-                  "value":"default_background"
-               },
-               {
-                  "key":"frame",
-                  "value":"default_frame"
-               },
-               {
-                  "key":"portrait",
-                  "value":"alexandre_stanoutfit_portrait"
-               },
-               {
-                  "key":"character",
-                  "value":"diego.default"
-               },
-               {
-                  "key":"board",
-                  "value":"trickster"
-               },
-               {
-                  "key":"score",
-                  "value":"1119541"
-               }
-            ],
-            "name":"",
-            "picture":""
-         },
-         {
-            "uid":"0197593c-8e07-70e4-bbab-9527aff30be1",
-            "scores":{
-               "current":0,
-               "past":0
-            },
-            "socialIds":[],
-            "metadata":[],
-            "name":"",
-            "picture":""
-         }
-      ]
-   }
+            "silver": {
+              "bronze": 4,
+              "diamond": 2,
+              "gold": 4,
+              "none": 2,
+              "silver": 7
+            }
+          }
+        },
+        "bounds": {
+          "bronze": 1015174,
+          "diamond": 10872653,
+          "gold": 5720604,
+          "none": 1,
+          "silver": 4009517
+        }
+      }
+    },
+    "players": [
+      {
+        "uid": "0199a69c-cab2-77b6-80c4-b5048650e431",
+        "scores": { "current": 103251, "past": 0 },
+        "socialIds": [],
+        "metadata": [
+          { "key": "score", "value": "103251" },
+          { "key": "background", "value": "default_background" },
+          { "key": "frame", "value": "default_frame" },
+          { "key": "portrait", "value": "amongusred_illustration_portrait" },
+          { "key": "character", "value": "tricky.default" },
+          { "key": "board", "value": "superhero" }
+        ],
+        "name": "",
+        "picture": ""
+      },
+      {
+        "uid": "019a4ab2-d099-7eea-a864-bd898f8f8b95",
+        "scores": { "current": 121918, "past": 201291 },
+        "socialIds": [],
+        "metadata": [
+          { "key": "score", "value": "121918" },
+          { "key": "background", "value": "default_background" },
+          { "key": "frame", "value": "default_frame" },
+          { "key": "portrait", "value": "tagbot_portrait" },
+          { "key": "character", "value": "fresh.default" },
+          { "key": "board", "value": "chillOut" }
+        ],
+        "name": "",
+        "picture": ""
+      },
+      {
+        "uid": "019b12ab-ce46-7b6a-9b12-ea664b18d8a0",
+        "scores": { "current": 61545, "past": 108151 },
+        "socialIds": [],
+        "metadata": [
+          { "key": "background", "value": "default_background" },
+          { "key": "frame", "value": "default_frame" },
+          { "key": "portrait", "value": "jake_portrait" },
+          { "key": "character", "value": "jake.default" },
+          { "key": "board", "value": "sunset" },
+          { "key": "score", "value": "61545" }
+        ],
+        "name": "",
+        "picture": ""
+      },
+      {
+        "uid": "44981f1f-16a8-44e5-b120-bf141e8cd820",
+        "scores": { "current": 351149, "past": 0 },
+        "socialIds": [],
+        "metadata": [
+          { "key": "character", "value": "jake.default" },
+          { "key": "board", "value": "xmas2022" },
+          { "key": "score", "value": "351149" },
+          { "key": "background", "value": "default_background" },
+          { "key": "frame", "value": "default_frame" },
+          { "key": "portrait", "value": "jake_portrait" }
+        ],
+        "name": "",
+        "picture": ""
+      },
+      {
+        "uid": "01948ea1-40ea-7787-a44e-0e42a545c33b",
+        "scores": { "current": 192, "past": 258238 },
+        "socialIds": [],
+        "metadata": [
+          { "key": "background", "value": "default_background" },
+          { "key": "frame", "value": "brawlstars_frame" },
+          {
+            "key": "portrait",
+            "value": "eightball_jake_illustration_portrait"
+          },
+          { "key": "character", "value": "malik.default" },
+          { "key": "board", "value": "bouncer" },
+          { "key": "score", "value": "192" }
+        ],
+        "name": "",
+        "picture": ""
+      },
+      {
+        "uid": "819ffb4b-0cef-444b-92bc-14fbc2c7d5ed",
+        "scores": { "current": 64327, "past": 0 },
+        "socialIds": [],
+        "metadata": [
+          { "key": "character", "value": "tricky.default" },
+          { "key": "board", "value": "starboard" },
+          { "key": "score", "value": "64327" },
+          { "key": "background", "value": "default_background" },
+          { "key": "frame", "value": "default_frame" },
+          { "key": "portrait", "value": "jake_portrait" }
+        ],
+        "name": "",
+        "picture": ""
+      },
+      {
+        "uid": "0195486a-0e6d-7ae1-962f-0ae85c697040",
+        "scores": { "current": 604963, "past": 3117635 },
+        "socialIds": [],
+        "metadata": [
+          { "key": "frame", "value": "default_frame" },
+          { "key": "portrait", "value": "jake_portrait" },
+          { "key": "character", "value": "clockworkJohnny.default" },
+          { "key": "board", "value": "starboard" },
+          { "key": "score", "value": "604963" },
+          { "key": "background", "value": "default_background" }
+        ],
+        "name": "",
+        "picture": ""
+      },
+      {
+        "uid": "b79d6980-1218-4119-936f-63b793a0ca11",
+        "scores": { "current": 721837, "past": 1043417 },
+        "socialIds": [],
+        "metadata": [
+          { "key": "board", "value": "boombastic" },
+          { "key": "score", "value": "721837" },
+          { "key": "background", "value": "default_background" },
+          { "key": "frame", "value": "default_frame" },
+          { "key": "portrait", "value": "jake_portrait" },
+          { "key": "character", "value": "bsToughGuy.default" }
+        ],
+        "name": "",
+        "picture": ""
+      },
+      {
+        "uid": "0193de86-0dec-7745-b1e8-ad5a5b02b105",
+        "scores": { "current": 96327, "past": 223308 },
+        "socialIds": [],
+        "metadata": [
+          { "key": "background", "value": "default_background" },
+          { "key": "frame", "value": "brawlstars_frame" },
+          { "key": "portrait", "value": "amongusred_illustration_portrait" },
+          { "key": "character", "value": "amongUsBlack.default" },
+          { "key": "board", "value": "daredevil" },
+          { "key": "score", "value": "96327" }
+        ],
+        "name": "",
+        "picture": ""
+      },
+      {
+        "uid": "0196c557-c905-734b-8657-484b53b53cae",
+        "scores": { "current": 2147483647, "past": 0 },
+        "socialIds": [],
+        "metadata": [
+          { "key": "board", "value": "default" },
+          { "key": "score", "value": "2147483647" },
+          { "key": "background", "value": "default_background" },
+          { "key": "frame", "value": "default_frame" },
+          { "key": "portrait", "value": "jake_portrait" },
+          { "key": "character", "value": "jake.default" }
+        ],
+        "name": "",
+        "picture": ""
+      },
+      {
+        "uid": "37a6ac9b-e0a9-4c8c-97ce-d12e182b08bf",
+        "scores": { "current": 1099143, "past": 0 },
+        "socialIds": [],
+        "metadata": [
+          { "key": "background", "value": "default_background" },
+          { "key": "frame", "value": "default_frame" },
+          { "key": "portrait", "value": "tagbot_portrait" },
+          { "key": "character", "value": "lucy.default" },
+          { "key": "board", "value": "mapleLeaf" },
+          { "key": "score", "value": "1099143" }
+        ],
+        "name": "",
+        "picture": ""
+      },
+      {
+        "uid": "b6e643d3-420d-4f8e-99f0-434675795022",
+        "scores": { "current": 383132, "past": 1112872 },
+        "socialIds": [],
+        "metadata": [
+          { "key": "background", "value": "default_background" },
+          { "key": "frame", "value": "default_frame" },
+          { "key": "portrait", "value": "jake_portrait" },
+          { "key": "character", "value": "lawrence.snowballerOutfit" },
+          { "key": "board", "value": "chillOut" },
+          { "key": "score", "value": "383132" }
+        ],
+        "name": "",
+        "picture": ""
+      },
+      {
+        "uid": "0199cf10-e729-7076-a3de-0caa0b1bbc7f",
+        "scores": { "current": 1633, "past": 0 },
+        "socialIds": [],
+        "metadata": [
+          { "key": "background", "value": "default_background" },
+          { "key": "frame", "value": "default_frame" },
+          { "key": "portrait", "value": "jake_portrait" },
+          { "key": "character", "value": "tricky.default" },
+          { "key": "board", "value": "default" },
+          { "key": "score", "value": "1633" }
+        ],
+        "name": "",
+        "picture": ""
+      },
+      {
+        "uid": "01973045-4be7-7290-b6ac-28b49eb844b7",
+        "scores": { "current": 944045, "past": 1470331 },
+        "socialIds": [],
+        "metadata": [
+          { "key": "board", "value": "fauxpunx" },
+          { "key": "score", "value": "944045" },
+          { "key": "background", "value": "default_background" },
+          { "key": "frame", "value": "gingerbread_frame" },
+          { "key": "portrait", "value": "dino_portrait" },
+          { "key": "character", "value": "gingerbot.wrapperOutfit" }
+        ],
+        "name": "",
+        "picture": ""
+      },
+      {
+        "uid": "0197a33e-02b6-779e-bff9-eb9361ad514b",
+        "scores": { "current": 361453, "past": 940694 },
+        "socialIds": [],
+        "metadata": [
+          { "key": "background", "value": "default_background" },
+          { "key": "frame", "value": "default_frame" },
+          { "key": "portrait", "value": "amongusred_illustration_portrait" },
+          { "key": "character", "value": "tricky.default" },
+          { "key": "board", "value": "superhero" },
+          { "key": "score", "value": "361453" }
+        ],
+        "name": "",
+        "picture": ""
+      },
+      {
+        "uid": "019afe53-24c2-7cd1-9560-be2590bb593c",
+        "scores": { "current": 37706, "past": 321155 },
+        "socialIds": [],
+        "metadata": [
+          { "key": "background", "value": "default_background" },
+          { "key": "frame", "value": "default_frame" },
+          { "key": "portrait", "value": "dino_portrait" },
+          { "key": "character", "value": "jake.default" },
+          { "key": "board", "value": "greatWhite" },
+          { "key": "score", "value": "37706" }
+        ],
+        "name": "",
+        "picture": ""
+      },
+      {
+        "uid": "4c52b9a9-fd0e-4ccb-9496-ca5ffaa075a2",
+        "scores": { "current": 5914707, "past": 4216229 },
+        "socialIds": [],
+        "metadata": [
+          { "key": "score", "value": "5914707" },
+          { "key": "background", "value": "default_background" },
+          { "key": "frame", "value": "default_frame" },
+          { "key": "portrait", "value": "amongusred_illustration_portrait" },
+          { "key": "character", "value": "amongUsGreen.default" },
+          { "key": "board", "value": "fauxpunx" }
+        ],
+        "name": "",
+        "picture": ""
+      },
+      {
+        "uid": "1673654b-9c1a-4d19-8a4c-ea05816c04ad",
+        "scores": { "current": 297315, "past": 7826692 },
+        "socialIds": [],
+        "metadata": [
+          { "key": "board", "value": "bigKahuna" },
+          { "key": "score", "value": "297315" },
+          { "key": "background", "value": "default_background" },
+          { "key": "frame", "value": "default_frame" },
+          { "key": "portrait", "value": "jake_portrait" },
+          { "key": "character", "value": "ella.default" }
+        ],
+        "name": "",
+        "picture": ""
+      },
+      {
+        "uid": "61f4fedd-3a85-43bb-92b4-6455f5684426",
+        "scores": { "current": 87605, "past": 0 },
+        "socialIds": [],
+        "metadata": [
+          { "key": "frame", "value": "default_frame" },
+          { "key": "portrait", "value": "jake_portrait" },
+          { "key": "character", "value": "jake.default" },
+          { "key": "board", "value": "default" },
+          { "key": "score", "value": "87605" },
+          { "key": "background", "value": "default_background" }
+        ],
+        "name": "",
+        "picture": ""
+      },
+      {
+        "uid": "01950e8e-eddb-7cd8-803a-1b444a5f0bc6",
+        "scores": { "current": 1919537, "past": 1191779 },
+        "socialIds": [],
+        "metadata": [
+          { "key": "score", "value": "1919537" },
+          { "key": "background", "value": "default_background" },
+          { "key": "frame", "value": "default_frame" },
+          { "key": "portrait", "value": "amongusred_illustration_portrait" },
+          { "key": "character", "value": "malik.default" },
+          { "key": "board", "value": "jingles" }
+        ],
+        "name": "",
+        "picture": ""
+      },
+      {
+        "uid": "425ea9b4-2405-4028-abb0-5b461bf2d985",
+        "scores": { "current": 153579, "past": 193191 },
+        "socialIds": [],
+        "metadata": [
+          { "key": "background", "value": "default_background" },
+          { "key": "frame", "value": "default_frame" },
+          { "key": "portrait", "value": "jake_portrait" },
+          { "key": "character", "value": "lucy.gothOutfit" },
+          { "key": "board", "value": "flyingHorse" },
+          { "key": "score", "value": "153579" }
+        ],
+        "name": "",
+        "picture": ""
+      }
+    ]
+  }
 }
 ```
 
 </details>
 
-### Get Tournament
+#### Send Tournament
 
-<details>
+- POST `/v3.0/tournament/group`
+- Registers the player for the tournament (leaderboard)
+- Sample request (2025-12-19): \
+  POST /v3.0/tournament/group \
+  Authorization: `Bearer <identityToken>` \
+  Body:
 
-```json
-{
-   "group":{
-      "week":24,
-      "start":"2025-06-09T10:00:00Z",
-      "end":"2025-06-16T10:00:00Z",
-      "tournamentId":"de",
-      "brackets":{
-         "current":{
-            "matchmaking":{
-               "groupSize":20,
-               "bracketMaxUsers":{
-                  "champion":1
-               },
-               "bracketSort":{
-                  "bronze":1,
-                  "diamond":4,
-                  "gold":3,
-                  "none":0,
-                  "silver":2
-               },
-               "bracketPercentage":{
-                  "bronze":0.2,
-                  "diamond":0.02,
-                  "gold":0.05,
-                  "none":0.63,
-                  "silver":0.1
-               },
-               "bracketDistribution":{
-                  "bronze":{
-                     "bronze":8,
-                     "diamond":1,
-                     "gold":3,
-                     "none":3,
-                     "silver":4
-                  },
-                  "diamond":{
-                     "bronze":2,
-                     "diamond":8,
-                     "gold":6,
-                     "none":0,
-                     "silver":3
-                  },
-                  "gold":{
-                     "bronze":2,
-                     "diamond":4,
-                     "gold":7,
-                     "none":1,
-                     "silver":5
-                  },
-                  "none":{
-                     "bronze":5,
-                     "diamond":1,
-                     "gold":2,
-                     "none":8,
-                     "silver":3
-                  },
-                  "silver":{
-                     "bronze":4,
-                     "diamond":2,
-                     "gold":4,
-                     "none":2,
-                     "silver":7
-                  }
-               }
-            },
-            "bounds":{
-               "bronze":1370621,
-               "diamond":10386575,
-               "gold":5511561,
-               "none":2,
-               "silver":3013690
-            }
-         },
-         "past":{
-            "matchmaking":{
-               "groupSize":20,
-               "bracketMaxUsers":{
-               },
-               "bracketSort":{
-                  "bronze":1,
-                  "diamond":4,
-                  "gold":3,
-                  "none":0,
-                  "silver":2
-               },
-               "bracketPercentage":{
-                  "bronze":0.2,
-                  "diamond":0.02,
-                  "gold":0.05,
-                  "none":0.63,
-                  "silver":0.1
-               },
-               "bracketDistribution":{
-                  "bronze":{
-                     "bronze":8,
-                     "diamond":1,
-                     "gold":3,
-                     "none":3,
-                     "silver":4
-                  },
-                  "diamond":{
-                     "bronze":2,
-                     "diamond":8,
-                     "gold":6,
-                     "none":0,
-                     "silver":3
-                  },
-                  "gold":{
-                     "bronze":2,
-                     "diamond":4,
-                     "gold":7,
-                     "none":1,
-                     "silver":5
-                  },
-                  "none":{
-                     "bronze":5,
-                     "diamond":1,
-                     "gold":2,
-                     "none":8,
-                     "silver":3
-                  },
-                  "silver":{
-                     "bronze":4,
-                     "diamond":2,
-                     "gold":4,
-                     "none":2,
-                     "silver":7
-                  }
-               }
-            },
-            "bounds":{
-               "bronze":984764,
-               "diamond":11652184,
-               "gold":5610007,
-               "none":1,
-               "silver":2949876
-            }
-         }
-      },
-      "players":[
-         {
-            "uid":"d57d8759-f28e-4869-870f-4d288ddaff83",
-            "scores":{
-               "current":1279904,
-               "past":10529983
-            },
-            "socialIds":[
-            ],
-            "metadata":[
-               {
-                  "key":"board",
-                  "value":"glitterBlaster"
-               },
-               {
-                  "key":"score",
-                  "value":"1279904"
-               },
-               {
-                  "key":"background",
-                  "value":"default_background"
-               },
-               {
-                  "key":"frame",
-                  "value":"lava_frame"
-               },
-               {
-                  "key":"portrait",
-                  "value":"berta_illustration_portrait"
-               },
-               {
-                  "key":"character",
-                  "value":"riley.default"
-               }
-            ],
-            "name":"",
-            "picture":""
-         },
-         {
-            "uid":"4f1f4146-9490-4e13-a638-aeff55ca12cf",
-            "scores":{
-               "current":585159,
-               "past":3123567
-            },
-            "socialIds":[
-            ],
-            "metadata":[
-               {
-                  "key":"background",
-                  "value":"default_background"
-               },
-               {
-                  "key":"frame",
-                  "value":"default_frame"
-               },
-               {
-                  "key":"portrait",
-                  "value":"dog_graffiti_portrait"
-               },
-               {
-                  "key":"character",
-                  "value":"tricky.default"
-               },
-               {
-                  "key":"board",
-                  "value":"smokingSlime"
-               },
-               {
-                  "key":"score",
-                  "value":"585159"
-               }
-            ],
-            "name":"",
-            "picture":""
-         },
-         {
-            "uid":"8debc9f5-0ce1-42a9-8e7d-e0fc1bc1da2e",
-            "scores":{
-               "current":7375622,
-               "past":7786878
-            },
-            "socialIds":[
-            ],
-            "metadata":[
-               {
-                  "key":"background",
-                  "value":"default_background"
-               },
-               {
-                  "key":"frame",
-                  "value":"lava_frame"
-               },
-               {
-                  "key":"portrait",
-                  "value":"fresh_graffiti_portrait"
-               },
-               {
-                  "key":"character",
-                  "value":"bertaSummerEleganzaOutfit.default"
-               },
-               {
-                  "key":"board",
-                  "value":"bloomster"
-               },
-               {
-                  "key":"score",
-                  "value":"7375622"
-               }
-            ],
-            "name":"",
-            "picture":""
-         },
-         {
-            "uid":"0197556e-508c-74d6-a267-c1e8585c5b44",
-            "scores":{
-               "current":62120,
-               "past":0
-            },
-            "socialIds":[],
-            "metadata":[
-               {
-                  "key":"score",
-                  "value":"62120"
-               },
-               {
-                  "key":"background",
-                  "value":"default_background"
-               },
-               {
-                  "key":"frame",
-                  "value":"default_frame"
-               },
-               {
-                  "key":"portrait",
-                  "value":"tagbot_portrait"
-               },
-               {
-                  "key":"character",
-                  "value":"jake.default"
-               },
-               {
-                  "key":"board",
-                  "value":"default"
-               }
-            ],
-            "name":"",
-            "picture":""
-         },
-         {
-            "uid":"796907fb-c0fc-470a-a9b4-a1286562efa5",
-            "scores":{
-               "current":210569,
-               "past":1838165
-            },
-            "socialIds":[],
-            "metadata":[
-               {
-                  "key":"background",
-                  "value":"default_background"
-               },
-               {
-                  "key":"frame",
-                  "value":"default_frame"
-               },
-               {
-                  "key":"portrait",
-                  "value":"jake_portrait"
-               },
-               {
-                  "key":"character",
-                  "value":"kareem.default"
-               },
-               {
-                  "key":"board",
-                  "value":"scarab"
-               },
-               {
-                  "key":"score",
-                  "value":"210569"
-               }
-            ],
-            "name":"",
-            "picture":""
-         },
-         {
-            "uid":"0197590d-94b8-7955-a4f1-fd080532fcdf",
-            "scores":{
-               "current":0,
-               "past":0
-            },
-            "socialIds":[],
-            "metadata":"None",
-            "name":"",
-            "picture":""
-         }
-      ]
-   }
-}
-```
+  ```json
+  {
+    "tournamentId": "de",
+    "gamedataHash": "932032004ba8ca40ab8c07890b0300a5c2b171fe"
+  }
+  ```
 
-</details>
+- Sample response: \
+   See above [tournament_response](#tournament_response)
+
+#### Get Tournament
+
+- GET `/v3.0/tournament/group`
+- Returns the current tournament (leaderboard)
+- Sample request (2025-12-19): \
+  POST /v3.0/tournament/group \
+  Authorization: `Bearer <identityToken>`
+
+- Sample response: \
+   See above [tournament_response](#tournament_response)
 
 ### Profile
-
-#### User Profile
-
-This request returns the complete save data for a player from a uuid. \
-This includes every save file.
-
-The response will output the save data in escaped json that you can decode using this [script](./send/scripts/profile_decode.py)
-
-When the id doesn't exist then it will return with a 404 error.
 
 **truncated version with only wallet, dataConsent, missedRewardsModels**
 
 <details>
+  <summary>Escaped Profile</summary>
 
 ```json
 {
@@ -1138,17 +1073,83 @@ When the id doesn't exist then it will return with a 404 error.
 
 </details>
 
+#### Get Profile
+
+- GET `/v2.0/profile`
+- Returns the current player's profile files
+- Sample request (2025-10-03): \
+  GET /v2.0/profile \
+  Authorization: `Bearer <identityToken>` \
+  Sample response:
+
+  ```json
+  {
+    "profile": "{\"wallet\":{\"version\":3,...}}",
+    "hash": "4d2bd1660d5428daf513c8339ee5e1a7bfabf12b",
+    "updated": "2025-06-09T18:05:55.91008Z",
+    "version": 2
+  }
+  ```
+
+Returns the current player's profile files
+
+When the player has never received profile data, it will return with a 404 error.
+
+#### Get Profile
+
+- GET `/v2.0/profile/<uuid>`
+- Returns the given uuids player's profile files
+- Sample request (2025-10-03): \
+  GET /v2.0/profile/<uuid\> \
+  Authorization: `Bearer <identityToken>`
+- Sample response:
+
+  ```json
+  {
+    "profile": "{\"wallet\":{\"version\":3,...}}",
+    "hash": "4d2bd1660d5428daf513c8339ee5e1a7bfabf12b",
+    "updated": "2025-06-09T18:05:55.91008Z",
+    "version": 2
+  }
+  ```
+
+This request returns the complete save data for a player from a uuid. \
+This includes every save file.
+
+The response will output the save data in escaped json that you can decode using this [script](./send/scripts/profile_decode.py)
+
+When the id doesn't exist or it has never received profile data, then it will return with a 404 error.
+
 #### Send Profile
 
-With this request you can send your escaped json save files. \
-The profile data and version number can be anything and will get accepted.
+- Method: POST /v2.0/profile
+- Send the current player's profile save files
+- Request (2025-10-03): \
+  POST /v2.0/profile
+  Authorization: `Bearer <identityToken>` \
+  Body:
 
-Version value: \
-`-999999999` - `999999999` values below or above the provided number range will result in a 400 error.
+  ```json
+  {
+    "profile": "{\"wallet\":{\"version\":3,...}}",
+    "version": 2
+  }
+  ```
 
-The profile data can have any amount of data, a empty string results in a 500 error.
+- Response (2025-12-19):
 
-The "profile" value is the same as the escaped json dict above.
+  ```json
+  { "hash": "6be3af7e1bb07f993dbf4f1bee233ddc99fdde1e" }
+  ```
+
+Notes:
+
+- With this request you can send your escaped JSON save files. \
+  The `profile` data and `version` number can be almost any values and will be accepted by the server. \
+  Valid version range: -999999999 — 999999999. Values outside this range return HTTP 400. \
+  The `profile` field may contain any amount of data; sending an empty string for `profile` results in a 500 error.
+
+Request example:
 
 ```json
 {
@@ -1157,9 +1158,26 @@ The "profile" value is the same as the escaped json dict above.
 }
 ```
 
-#### Get Profile
+Changes:
 
-This request returns the complete save data for the own player.
+- Previously (2025-10-03) the endpoint returned the full escaped player profile together with metadata, timestamp and version:
+
+  ```json
+  {
+    "profile": "{\"wallet\":{\"version\":3,\"data\":\"...\"}}",
+    "hash": "4d2bd1660d5428daf513c8339ee5e1a7bfabf12b",
+    "updated": "2025-06-09T18:05:55.91008Z",
+    "version": 2
+  }
+  ```
+
+- Current response (2025-12-19): the endpoint returns only the profile hash:
+
+  ```json
+  {
+    "hash": "4d2bd1660d5428daf513c8339ee5e1a7bfabf12b"
+  }
+  ```
 
 ### Analytics
 
@@ -1232,4 +1250,8 @@ discord10
 
 ```
 https://subway-surfers.sng.link/A8yjk/ucg6?_dl=subwaysurfers://&pcn=default&_p={"subway_promo_code":"{promoCode}"}
+```
+
+```
+
 ```

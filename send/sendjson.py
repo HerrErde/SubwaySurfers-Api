@@ -45,7 +45,6 @@ def auth_register():
         print(response_json)
 
 
-# Needs Authtoken
 def auth_refresh(refreshToken: str):
     url = api_url + "/v2.0/auth/refresh"
 
@@ -72,7 +71,6 @@ def auth_refresh(refreshToken: str):
         print(response_json)
 
 
-# Needs Authtoken
 def get_mail(
     payer: bool = False,
     level: int = 0,
@@ -109,7 +107,6 @@ def get_mail(
         print(r.json())
 
 
-# Needs Authtoken
 def get_tournament():
     url = api_url + "/v3.0/tournament/group"
 
@@ -125,7 +122,6 @@ def get_tournament():
         print(r.json())
 
 
-# Needs Authtoken
 def send_tournament(tournamentId: str, gamedataHash: str):
     url = api_url + "/v3.0/tournament/group"
 
@@ -216,7 +212,6 @@ def get_media(promotion: str, image: str):
 
 
 # TODO
-# Needs Authtoken
 def events(
     gameId: int = 3447644,
     orgId: int = 176648,
@@ -377,14 +372,15 @@ def get_networkcheck():
         print(r.status_code)
 
 
-# Needs Authtoken
 def abtesting(
     payer: bool = True,
     level: int = 39,
+    genuine_app: str = "Genuine",
     age: int = 69,
     language: str = "en",
     platform: str = "android",
     coppa: bool = True,
+    install_source: str = "com.android.vending",
     version: str = "3.47.0",
 ):
     url = api_url + "/v1.0/abtesting/match"
@@ -394,9 +390,11 @@ def abtesting(
             "payer": str(payer),
             "level": str(level),
             "age": str(age),
+            "genuine_app": genuine_app,
             "language": language,
             "platform": platform,
             "coppa": str(coppa),
+            "install_source": install_source,
             "gameVersion": version,
         }
     }
@@ -414,16 +412,18 @@ def abtesting(
         r.raise_for_status()
 
         print(r.status_code)
+        print(r.json())
 
 
-# Needs Authtoken
 def crosspromo(
     test: bool = False,
     language: str = "en",
+    genuine_app: str = "Genuine",
     payer: bool = True,
     level: int = 39,
     age: int = 69,
     platform: str = "android",
+    install_source: str = "com.android.vending",
     coppa: bool = True,
     version: str = "3.44.0",
 ):
@@ -435,10 +435,12 @@ def crosspromo(
         "metrics": {
             "payer": str(payer),
             "level": str(level),
+            "genuine_app": genuine_app,
             "age": str(age),
             "language": language,
             "platform": platform,
             "coppa": str(coppa),
+            "install_source": install_source,
             "gameVersion": version,
         },
         "attribution": None,
@@ -481,7 +483,6 @@ def assets(game: str, bundleId: str):
         print(f"An error occurred: {e}")
 
 
-# Needs Authtoken
 # TODO
 def send_metrics():
     url = api_url + "/v1.0/metrics"
@@ -499,7 +500,6 @@ def send_metrics():
         print(r.content)
 
 
-# Needs Authtoken
 def gdpr_delete():
     url = api_url + "/v1.0/gdpr/delete"
 
@@ -518,7 +518,6 @@ def gdpr_delete():
         print(r.json())
 
 
-# Needs Authtoken
 def gdpr_status():
     url = api_url + "/v1.0/gdpr/status"
 
@@ -534,7 +533,6 @@ def gdpr_status():
         print(r.json())
 
 
-# Needs Authtoken
 def get_user_profile(uuid: str):
     url = api_url + f"/v2.0/profile/{uuid}"
 
@@ -583,7 +581,6 @@ def send_profile(profile: str, version: int):
             print("Invalid JSON response")
 
 
-# Needs Authtoken
 def get_profile():
     url = api_url + f"/v2.0/profile"
 
@@ -606,7 +603,6 @@ def get_profile():
             print("Invalid JSON response")
 
 
-# Needs Authtoken
 def send_redeem(redeem_code: str, platform: int):
     url = api_url + "/v1.0/promocode/redeem"
 
@@ -714,22 +710,7 @@ def send_fbinstall():
         print(r.json())
 
 
-def get_challenge(challenge: str = "daily_challenge_en"):
-    url = api_url + f"/v2.0/challenge/{challenge}/group"
-
-    with httpx.Client(http2=True) as client:
-        r = client.get(
-            url,
-            headers={
-                **headers,
-                "Authorization": f"Bearer {identityToken}",
-            },
-        )
-        print(r.status_code)
-        print(r.json())
-
-
-def get_challenge(
+def send_challenge(
     matchmakingStartValue: int,
     gamedataHash: str,
     challengeId: str,
@@ -754,6 +735,21 @@ def get_challenge(
             json=body,
         )
 
+        print(r.status_code)
+        print(r.json())
+
+
+def get_challenge(challenge: str):
+    url = api_url + f"/v2.0/challenge/{challenge}/group"
+
+    with httpx.Client(http2=True) as client:
+        r = client.get(
+            url,
+            headers={
+                **headers,
+                "Authorization": f"Bearer {identityToken}",
+            },
+        )
         print(r.status_code)
         print(r.json())
 
@@ -837,6 +833,42 @@ def facebook_disconnect(token: str, nonce: str):
         print(r.status_code)
 
 
+def gplay_connect(authcode: str):
+    url = api_url + "/v2.0/auth/play/connect"
+
+    body = {
+        "authcode": authcode,
+    }
+
+    with httpx.Client(http2=True) as client:
+        r = client.post(
+            url,
+            headers={
+                **headers,
+                "Authorization": f"Bearer {identityToken}",
+            },
+            json=body,
+        )
+
+        print(r.status_code)
+        print(r.json())
+
+
+def gplay_disconnect(token: str, nonce: str):
+    url = api_url + "/v2.0/auth/play/disconnect"
+
+    with httpx.Client(http2=True) as client:
+        r = client.post(
+            url,
+            headers={
+                **headers,
+                "Authorization": f"Bearer {identityToken}",
+            },
+        )
+
+        print(r.json())
+
+
 # get_mail()
 # crosspromo()
 # auth_register()
@@ -852,14 +884,14 @@ def facebook_disconnect(token: str, nonce: str):
 # abtesting()
 # send_tournament("de", "9174e7104115388308819319bdd411b0a11b1082")
 # get_tournament()
-# get_user_profile("01975933-cb36-7896-99c3-5ad6bd1a4dc2")
-# send_profile("", 2)
 # get_profile()
+# send_profile("", 2)
+# get_user_profile("01975933-cb36-7896-99c3-5ad6bd1a4dc2")
 # get_networkcheck()
 # get_cflocation()
 # get_servertime()
 # send_redeem("PrideFrame2025", 1)
 # send_websdk()
 # send_fbinstall()
-# get_challenge("nl")
-# get_challenge(39,"70409a79f9500482a5075052a93f15be22fc1383","daily_challenge_de","dailyChallenge")
+# send_challenge(39,"70409a79f9500482a5075052a93f15be22fc1383","daily_challenge_de","dailyChallenge")
+# get_challenge("daily_challenge_en")

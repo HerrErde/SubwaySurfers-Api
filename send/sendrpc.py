@@ -7,6 +7,30 @@ from google.protobuf.any_pb2 import Any
 from google.rpc import error_details_pb2, status_pb2
 
 
+api_url = "https://subway.prod.sybo.net"
+game = "subway"
+
+load_dotenv()
+identityToken = str(os.environ.get("IDENTITYTOKEN", ""))
+
+headers = {
+    "User-Agent": "grpc-dotnet/2.63.0 (Mono Unity; CLR 4.0.30319.17020; netstandard2.0; arm64) com.kiloo.subwaysurf/3.47.0",
+    "TE": "trailers",
+    "grpc-accept-encoding": "identity,gzip",
+    "Content-Type": "application/grpc-web",
+    "genuine_app": "Genuine",
+    # "genuine_app": "SignatureMismatch",
+    "Authorization": f"Bearer {identityToken}",
+    # "SYBO-Vendor-Id": "7683d9dfb27fd5f5a86ca36bbdd78ccf",
+    # "SYBO-Bundle-Id": "com.kiloo.subwaysurf",
+    # "SYBO-Device-Model": "",
+    # "SYBO-Game-Version": "3.47.0_0x28820420x29",
+    # "Client-Version": "3.47.0",
+}
+uuid_pattern = "\b[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}\b"
+tag_pattern = "^[A-Z0-9]{14}$"
+
+
 def statusmessage(r):
     hrbin = r.headers.get("grpc-status-details-bin")
 
@@ -37,30 +61,6 @@ def statusmessage(r):
     return "\n".join(out)
 
 
-api_url = "https://subway.prod.sybo.net"
-game = "subway"
-
-load_dotenv()
-identityToken = str(os.environ.get("IDENTITYTOKEN", ""))
-
-headers = {
-    "User-Agent": "grpc-dotnet/2.63.0 (Mono Unity; CLR 4.0.30319.17020; netstandard2.0; arm64) com.kiloo.subwaysurf/3.47.0",
-    "TE": "trailers",
-    "grpc-accept-encoding": "identity,gzip",
-    "Content-Type": "application/grpc-web",
-    "genuine_app": "Genuine"
-    #"genuine_app": "SignatureMismatch"
-    "Authorization": f"Bearer {identityToken}",
-    # "SYBO-Vendor-Id": "7683d9dfb27fd5f5a86ca36bbdd78ccf",
-    # "SYBO-Bundle-Id": "com.kiloo.subwaysurf",
-    # "SYBO-Device-Model": "",
-    # "SYBO-Game-Version": "3.47.0_0x28820420x29",
-    # "Client-Version": "3.47.0",
-}
-uuid_pattern = "\b[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}\b"
-tag_pattern = "^[A-Z0-9]{14}$"
-
-
 def grpc_status_name(code: int) -> str:
     grpc_status_codes = {
         0: "OK",
@@ -87,6 +87,15 @@ def grpc_status_name(code: int) -> str:
         return f"UNKNOWN_STATUS({code})"
 
 
+def framing(msg):
+    payload = msg.SerializeToString()
+
+    # gRPC-Web framing
+    body = b"\x00" + len(payload).to_bytes(4, "big") + payload
+
+    return body
+
+
 def get_player_by_tag(playertag: str):
     from player_pb2 import PlayerResponse, PlayerRequest
 
@@ -95,11 +104,7 @@ def get_player_by_tag(playertag: str):
     msg = PlayerRequest(
         player=playertag,
     )
-
-    payload = msg.SerializeToString()
-
-    # gRPC-Web framing
-    body = b"\x00" + len(payload).to_bytes(4, "big") + payload
+    body = framing(msg)
 
     with httpx.Client(http2=True) as client:
         r = client.post(
@@ -109,14 +114,12 @@ def get_player_by_tag(playertag: str):
         )
 
     raw = r.content
-
     if len(raw) < 5:
         print("Response too short")
         return
 
     msg_len = int.from_bytes(raw[1:5], "big")
     grpc_payload = raw[5 : 5 + msg_len]
-    # print("gRPC payload (hex):", grpc_payload.hex())
 
     try:
         resp = PlayerResponse()
@@ -137,10 +140,7 @@ def get_player_by_id(playeruuid: str):
         player=playeruuid,
     )
 
-    payload = msg.SerializeToString()
-
-    # gRPC-Web framing
-    body = b"\x00" + len(payload).to_bytes(4, "big") + payload
+    body = framing(msg)
 
     with httpx.Client(http2=True) as client:
         r = client.post(
@@ -150,14 +150,12 @@ def get_player_by_id(playeruuid: str):
         )
 
     raw = r.content
-
     if len(raw) < 5:
         print("Response too short")
         return
 
     msg_len = int.from_bytes(raw[1:5], "big")
     grpc_payload = raw[5 : 5 + msg_len]
-    # print("gRPC payload (hex):", grpc_payload.hex())
 
     try:
         resp = PlayerResponse()
@@ -176,10 +174,7 @@ def get_player():
 
     msg = Empty()
 
-    payload = msg.SerializeToString()
-
-    # gRPC-Web framing
-    body = b"\x00" + len(payload).to_bytes(4, "big") + payload
+    body = framing(msg)
 
     with httpx.Client(http2=True) as client:
         r = client.post(
@@ -188,10 +183,7 @@ def get_player():
             content=body,
         )
 
-    # print(grpc_status_name(r.headers.get("grpc-status")))
-
     raw = r.content
-
     if len(raw) < 5:
         print("Response too short")
         return
@@ -209,27 +201,41 @@ def get_player():
 
 
 def create_player():
-    from player_pb2 import CreatePlayerRequest, PlayerResponse
+    from player_pb2 import UpdatePlayerRequest, PlayerResponse
 
     url = api_url + "/rpc/player.ext.v1.PrivateService/CreatePlayer"
 
-    msg = CreatePlayerRequest(
-        name="CoolNiko",
-        selected_board="default",
-        selected_board_upgrades="default",
-        selected_character="jake.default",
-        selected_country="de",
-        selected_background="default_background",
-        selected_frame="default_frame",
-        selected_portrait="jake_portrait",
-        stat_total_visited_destinations=1,
-        stat_total_games=1,
+    msg = UpdatePlayerRequest(
+        name="StylingeDino",
+        level=1,
+        highscore=1,
+        metadata={
+            "stat_total_visited_destinations": "1",
+            "stat_total_games": "1",
+            "stat_owned_characters": "1",
+            "stat_owned_characters_outfits": "1",
+            "stat_owned_boards": "1",
+            "stat_owned_boards_upgrades": "1",
+            "stat_achievements": "1",
+            "stat_total_top_run_medals_bronze": "1",
+            "stat_total_top_run_medals_silver": "1",
+            "stat_total_top_run_medals_gold": "1",
+            "stat_total_top_run_medals_diamond": "1",
+            "stat_total_top_run_medals_champion": "1",
+            "selected_character": "jake.default",
+            "selected_portrait": "boombox_graffiti_portrait",
+            # "selected_frame": "jake_portrait",
+            # "selected_background": "default_background",
+            # "selected_board_upgrades": "default,trail",
+            # "selected_board": "default",
+            # "selected_country": "de",
+            # "highscore_default": "1",
+            "equipped_badge_tier_1": "0",
+            "equipped_badge_1": "achievement_03",
+        },
     )
 
-    payload = msg.SerializeToString()
-
-    # gRPC-Web framing
-    body = b"\x00" + len(payload).to_bytes(4, "big") + payload
+    body = framing(msg)
 
     with httpx.Client(http2=True) as client:
         r = client.post(
@@ -239,7 +245,6 @@ def create_player():
         )
 
     raw = r.content
-
     if len(raw) < 5:
         print("Response too short")
         return
@@ -254,7 +259,6 @@ def create_player():
     except Exception as e:
         print("Failed to parse response:", e)
         print("gRPC payload (hex):", grpc_payload.hex())
-        print("No valid response received.")
 
 
 def update_player():
@@ -292,8 +296,7 @@ def update_player():
         },
     )
 
-    payload = msg.SerializeToString()
-    body = b"\x00" + len(payload).to_bytes(4, "big") + payload
+    body = framing(msg)
 
     with httpx.Client(http2=True) as client:
         r = client.post(
@@ -302,22 +305,19 @@ def update_player():
             content=body,
         )
 
-    print(statusmessage(r))
-
     raw = r.content
-
     if len(raw) < 5:
         print("Response too short")
         return
 
     msg_len = int.from_bytes(raw[1:5], "big")
     grpc_payload = raw[5 : 5 + msg_len]
-    # print("payload bytes:", resp.SerializeToString().hex())
 
     try:
         resp = PlayerResponse()
         resp.ParseFromString(grpc_payload)
         print(resp)
+        # print("payload bytes:", resp.SerializeToString().hex())
     except Exception as e:
         print("Failed to parse response:", e)
         print("gRPC payload (hex):", grpc_payload.hex())
@@ -330,10 +330,7 @@ def get_friends():
 
     msg = Empty()
 
-    payload = msg.SerializeToString()
-
-    # gRPC-Web framing
-    body = b"\x00" + len(payload).to_bytes(4, "big") + payload
+    body = framing(msg)
 
     with httpx.Client(http2=True) as client:
         r = client.post(
@@ -342,27 +339,17 @@ def get_friends():
             content=body,
         )
 
-    if "text/html" in r.headers.get("Content-Type", ""):
-        print("Received HTML instead of protobuf. Something went wrong.")
-        return
-
-    if r.status_code != 200:
-        print(f"HTTP error {r.status_code}: {r.text}")
-        return
-
     raw = r.content
     if len(raw) < 5:
-        print("gRPC-Web response too short")
+        print("Response too short")
         return
+    elif r.content:
+        if "text/html" in r.headers.get("Content-Type"):
+            print("Content is html")
+            return
 
     msg_len = int.from_bytes(raw[1:5], "big")
     grpc_payload = raw[5 : 5 + msg_len]
-    # print("gRPC payload (hex):", grpc_payload.hex())
-
-    grpc_status = r.headers.get("grpc-status", "0")
-    if grpc_status != "0":
-        print("gRPC Error:", r.headers.get("grpc-message", "Unknown error"))
-        return
 
     try:
         resp = GetFriendsResponse()
@@ -382,10 +369,7 @@ def get_invites():
 
     msg = Empty()
 
-    payload = msg.SerializeToString()
-
-    # gRPC-Web framing
-    body = b"\x00" + len(payload).to_bytes(4, "big") + payload
+    body = framing(msg)
 
     with httpx.Client(http2=True) as client:
         r = client.post(
@@ -394,22 +378,17 @@ def get_invites():
             content=body,
         )
 
-    if "text/html" in r.headers.get("Content-Type", ""):
-        print("Received HTML instead of protobuf. Something went wrong.")
-        return
-
-    if r.status_code != 200:
-        print(f"HTTP error {r.status_code}: {r.text}")
-        return
-
     raw = r.content
     if len(raw) < 5:
-        print("gRPC-Web response too short")
+        print("Response too short")
         return
+    elif r.content:
+        if "text/html" in r.headers.get("Content-Type"):
+            print("Content is html")
+            return
 
     msg_len = int.from_bytes(raw[1:5], "big")
     grpc_payload = raw[5 : 5 + msg_len]
-    # print("gRPC payload (hex):", grpc_payload.hex())
 
     try:
         resp = GetInvitesResponse()
@@ -429,10 +408,7 @@ def get_friendsandinvites():
 
     msg = Empty()
 
-    payload = msg.SerializeToString()
-
-    # gRPC-Web framing
-    body = b"\x00" + len(payload).to_bytes(4, "big") + payload
+    body = framing(msg)
 
     with httpx.Client(http2=True) as client:
         r = client.post(
@@ -441,27 +417,17 @@ def get_friendsandinvites():
             content=body,
         )
 
-    if "text/html" in r.headers.get("Content-Type", ""):
-        print("Received HTML instead of protobuf. Something went wrong.")
-        return
-
-    if r.status_code != 200:
-        print(f"HTTP error {r.status_code}: {r.text}")
-        return
-
     raw = r.content
     if len(raw) < 5:
-        print("gRPC-Web response too short")
+        print("Response too short")
         return
+    elif r.content:
+        if "text/html" in r.headers.get("Content-Type"):
+            print("Content is html")
+            return
 
     msg_len = int.from_bytes(raw[1:5], "big")
     grpc_payload = raw[5 : 5 + msg_len]
-    # print("gRPC payload (hex):", grpc_payload.hex())
-
-    grpc_status = r.headers.get("grpc-status", "0")
-    if grpc_status != "0":
-        print("gRPC Error:", r.headers.get("grpc-message", "Unknown error"))
-        return
 
     try:
         resp = GetFriendAndInvitesResponse()
@@ -483,10 +449,7 @@ def send_invite(playeruuid: str):
         player=playeruuid,
     )
 
-    payload = msg.SerializeToString()
-
-    # gRPC-Web framing
-    body = b"\x00" + len(payload).to_bytes(4, "big") + payload
+    body = framing(msg)
 
     with httpx.Client(http2=True) as client:
         r = client.post(
@@ -495,7 +458,14 @@ def send_invite(playeruuid: str):
             content=body,
         )
 
-    print(statusmessage(r))
+    raw = r.content
+    if len(raw) < 5:
+        print("Response too short")
+        return
+    elif r.content:
+        if "text/html" in r.headers.get("Content-Type"):
+            print("Content is html")
+            return
 
     status = r.headers.get("grpc-status")
     if status == "0":
@@ -504,18 +474,8 @@ def send_invite(playeruuid: str):
         print("INVITES_THROTTLED/INVITE_QUEUE_FULL")
         return
 
-    raw = r.content
-    if len(raw) < 5:
-        print("Response too short")
-        return
-    elif r.content:
-        if "text/html;" in r.headers.get("Content-Type"):
-            print("Content is html")
-            return
-
     msg_len = int.from_bytes(raw[1:5], "big")
     grpc_payload = raw[5 : 5 + msg_len]
-    # print("gRPC payload (hex):", grpc_payload.hex())
 
     try:
         resp = SendInviteResponse()
@@ -537,10 +497,7 @@ def cancel_invite(playeruuid: str):
         player=playeruuid,
     )
 
-    payload = msg.SerializeToString()
-
-    # gRPC-Web framing
-    body = b"\x00" + len(payload).to_bytes(4, "big") + payload
+    body = framing(msg)
 
     with httpx.Client(http2=True) as client:
         r = client.post(
@@ -550,14 +507,15 @@ def cancel_invite(playeruuid: str):
         )
 
     grpc_status = r.headers.get("grpc-status", "0")
+    grpc_message = r.headers.get("grpc-message", "")
+
     if grpc_status != "0":
-        print(f"Cancel failed. gRPC status: {grpc_status}")
-    else:
-        print("Cancel invite successful.")
+        print("Cancel failed:", grpc_message)
+        return
 
 
 def accept_invite(playeruuid: str):
-    from player_pb2 import PlayerRequest, StatusResponse
+    from player_pb2 import PlayerRequest
 
     url = api_url + "/rpc/friends.ext.v1.PrivateService/AcceptInvite"
 
@@ -565,51 +523,21 @@ def accept_invite(playeruuid: str):
         player=playeruuid,
     )
 
-    payload = msg.SerializeToString()
-
-    # gRPC-Web framing
-    body = b"\x00" + len(payload).to_bytes(4, "big") + payload
+    body = framing(msg)
 
     with httpx.Client(http2=True) as client:
         r = client.post(
             url,
-            headers={
-                **headers,
-                "Content-Type": "application/grpc-web",
-            },
+            headers=headers,
             content=body,
         )
 
-    if "text/html" in r.headers.get("Content-Type", ""):
-        print("Received HTML instead of protobuf. Something went wrong.")
-        return
-
-    if r.status_code != 200:
-        print(f"HTTP error {r.status_code}: {r.text}")
-        return
-
-    raw = r.content
-    if len(raw) < 5:
-        print("gRPC-Web response too short")
-        return
-
-    msg_len = int.from_bytes(raw[1:5], "big")
-    grpc_payload = raw[5 : 5 + msg_len]
-
     grpc_status = r.headers.get("grpc-status", "0")
-    if grpc_status != "0":
-        print("gRPC Error:", r.headers.get("grpc-message", "Unknown error"))
-        return
+    grpc_message = r.headers.get("grpc-message", "")
 
-    try:
-        resp = StatusResponse()
-        resp.ParseFromString(grpc_payload)
-        print(resp)
-    except Exception as e:
-        print("Failed to parse response:", e)
-        message = r.headers.get("grpc-message")
-        print("gRPC message:", message)
-        print("gRPC payload (hex):", grpc_payload.hex())
+    if grpc_status != "0":
+        print("Cancel failed:", grpc_message)
+        return
 
 
 def decline_invite(playeruuid: str):
@@ -621,10 +549,7 @@ def decline_invite(playeruuid: str):
         player=playeruuid,
     )
 
-    payload = msg.SerializeToString()
-
-    # gRPC-Web framing
-    body = b"\x00" + len(payload).to_bytes(4, "big") + payload
+    body = framing(msg)
 
     with httpx.Client(http2=True) as client:
         r = client.post(
@@ -634,10 +559,11 @@ def decline_invite(playeruuid: str):
         )
 
     grpc_status = r.headers.get("grpc-status", "0")
+    grpc_message = r.headers.get("grpc-message", "")
+
     if grpc_status != "0":
-        print(f"Decline failed. gRPC status: {grpc_status}")
-    else:
-        print("Declined invite successful.")
+        print("Cancel failed:", grpc_message)
+        return
 
 
 def remove_friend(playeruuid: str):
@@ -649,10 +575,7 @@ def remove_friend(playeruuid: str):
         player=playeruuid,
     )
 
-    payload = msg.SerializeToString()
-
-    # gRPC-Web framing
-    body = b"\x00" + len(payload).to_bytes(4, "big") + payload
+    body = framing(msg)
 
     with httpx.Client(http2=True) as client:
         r = client.post(
@@ -661,15 +584,9 @@ def remove_friend(playeruuid: str):
             content=body,
         )
 
-    grpc_status = r.headers.get("grpc-status", "0")
-    if grpc_status != "0":
-        print(f"Removing friend failed. gRPC status: {grpc_status}")
-    else:
-        print("Removing Friend successful.")
-
 
 def get_relationship(playeruuid: str):
-    from player_pb2 import PlayerRequest, StatusResponse
+    from player_pb2 import PlayerRequest, GetRelationshipResponse
 
     url = api_url + "/rpc/friends.ext.v1.PrivateService/GetRelationship"
 
@@ -677,10 +594,7 @@ def get_relationship(playeruuid: str):
         player=playeruuid,
     )
 
-    payload = msg.SerializeToString()
-
-    # gRPC-Web framing
-    body = b"\x00" + len(payload).to_bytes(4, "big") + payload
+    body = framing(msg)
 
     with httpx.Client(http2=True) as client:
         r = client.post(
@@ -694,16 +608,15 @@ def get_relationship(playeruuid: str):
         print("Response too short")
         return
     elif r.content:
-        if "text/html;" in r.headers.get("Content-Type"):
+        if "text/html" in r.headers.get("Content-Type"):
             print("Content is html")
             return
 
     msg_len = int.from_bytes(raw[1:5], "big")
     grpc_payload = raw[5 : 5 + msg_len]
-    # print("gRPC payload (hex):", grpc_payload.hex())
 
     try:
-        resp = StatusResponse()
+        resp = GetRelationshipResponse()
         resp.ParseFromString(grpc_payload)
         print(resp)
     except Exception as e:
@@ -720,8 +633,7 @@ def get_wallet():
 
     msg = Empty()
 
-    payload = msg.SerializeToString()
-    body = b"\x00" + len(payload).to_bytes(4, "big") + payload
+    body = framing(msg)
 
     with httpx.Client(http2=True) as client:
         r = client.post(
@@ -745,6 +657,46 @@ def get_wallet():
     except Exception as e:
         print("Failed to parse response:", e)
         print("gRPC payload (hex):", grpc_payload.hex())
+
+
+def get_wallet_json():
+    url = api_url + "/rpc/wallet.ext.v1.PrivateService/GetWallet"
+
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {identityToken}",
+    }
+
+    body = {}
+
+    with httpx.Client(http2=True) as client:
+        r = client.post(
+            url,
+            headers=headers,
+            json=body,
+        )
+
+    print(r.json())
+
+
+def use_consume(offerId):
+    url = api_url + "/rpc/wallet.ext.v1.PrivateService/Consume"
+
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {identityToken}",
+    }
+
+    body = {"offerId": offerId}
+
+    with httpx.Client(http2=True) as client:
+        r = client.post(
+            url,
+            headers=headers,
+            json=body,
+        )
+
+    print(r.json())
 
 
 def init_energy(kindId: str):
@@ -836,16 +788,13 @@ def add_energy(kindId: str, value: int):
 
 
 def match():
-    from player_pb2 import Empty, MatchPlayerResponse
+    from player_pb2 import Empty, PlayerResponse
 
     url = api_url + "/rpc/player.ext.v1.PrivateService/Match"
 
     msg = Empty()
 
-    payload = msg.SerializeToString()
-
-    # gRPC-Web framing
-    body = b"\x00" + len(payload).to_bytes(4, "big") + payload
+    body = framing(msg)
 
     with httpx.Client(http2=True) as client:
         r = client.post(
@@ -854,29 +803,20 @@ def match():
             content=body,
         )
 
-    if "text/html" in r.headers.get("Content-Type", ""):
-        print("Received HTML instead of protobuf. Something went wrong.")
-        return
-
-    if r.status_code != 200:
-        print(f"HTTP error {r.status_code}: {r.text}")
-        return
-
     raw = r.content
     if len(raw) < 5:
-        print("gRPC-Web response too short")
+        print("Response too short")
         return
+    elif r.content:
+        if "text/html" in r.headers.get("Content-Type"):
+            print("Content is html")
+            return
 
     msg_len = int.from_bytes(raw[1:5], "big")
     grpc_payload = raw[5 : 5 + msg_len]
 
-    grpc_status = r.headers.get("grpc-status", "0")
-    if grpc_status != "0":
-        print("gRPC Error:", r.headers.get("grpc-message", "Unknown error"))
-        return
-
     try:
-        resp = MatchPlayerResponse()
+        resp = PlayerResponse()
         resp.ParseFromString(grpc_payload)
         print(resp)
     except Exception as e:
@@ -886,51 +826,11 @@ def match():
         print("gRPC payload (hex):", grpc_payload.hex())
 
 
-def get_wallet_json():
-    url = api_url + "/rpc/wallet.ext.v1.PrivateService/GetWallet"
-
-    headers = {
-        "Content-Type": "application/json",
-        "Authorization": f"Bearer {identityToken}",
-    }
-
-    body = {}
-
-    with httpx.Client(http2=True) as client:
-        r = client.post(
-            url,
-            headers=headers,
-            json=body,
-        )
-
-    print(r.json())
-
-
-def use_consume(offerId):
-    url = api_url + "/rpc/wallet.ext.v1.PrivateService/Consume"
-
-    headers = {
-        "Content-Type": "application/json",
-        "Authorization": f"Bearer {identityToken}",
-    }
-
-    body = {"offerId": offerId}
-
-    with httpx.Client(http2=True) as client:
-        r = client.post(
-            url,
-            headers=headers,
-            json=body,
-        )
-
-    print(r.json())
-
-
 # get_player_by_tag("N99635VZB9NFPD")
 # get_player_by_id("fca24390-4e4e-4994-a02a-3aab323129a2")
 # create_player()
-# get_player()
 # update_player()
+# get_player()
 # get_friends()
 # get_invites()
 # get_friendsandinvites()
