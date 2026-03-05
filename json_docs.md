@@ -8,8 +8,15 @@
 - [Explanations](#explanations)
   - [Table of Contents](#table-of-contents)
   - [General Notes](#general-notes)
-    - [Register](#register)
-    - [Refresh](#refresh)
+      - [Auth](#auth)
+      - [Register](#register)
+      - [Refresh](#refresh)
+      - [Play](#play)
+        - [Play Connect](#play-connect)
+        - [Play Login](#play-login)
+        - [Play disconnect](#play-disconnect)
+    - [Abtesting](#abtesting)
+    - [Crosspromo](#crosspromo)
     - [Content](#content)
       - [Manifest](#manifest)
       - [Gamedata](#gamedata)
@@ -21,13 +28,18 @@
     - [Challenge](#challenge)
       - [Sent Challenge](#sent-challenge)
       - [Get Challenge](#get-challenge)
+      - [Sent Challenge Score](#sent-challenge-score)
     - [Tournament](#tournament)
       - [Send Tournament](#send-tournament)
       - [Get Tournament](#get-tournament)
     - [Profile](#profile)
       - [Get Profile](#get-profile)
-      - [Get Profile](#get-profile-1)
+      - [Get Player Profile](#get-player-profile)
       - [Send Profile](#send-profile)
+    - [Mail](#mail)
+      - [Get](#get)
+      - [Read](#read)
+      - [Claim](#claim)
     - [Analytics](#analytics)
       - [Analytics Core](#analytics-core)
     - [Deep Links](#deep-links)
@@ -37,29 +49,30 @@
 
 ## General Notes
 
-All knowledge is for versions `3.56.0`
+All knowledge is for versions `3.59.2`
 
 > [!WARNING]
 > Changes are expected to happen
 
-After registering an account, you'll have to create a player to use all the requests; otherwise, the account is 'empty' and can't perform player actions
+After registering an account, you'll have to create a player to use all the requests; otherwise, the account is 'empty' and can't perform player actions.
 
-You can only add abtesting to the account after adding crosspromo. This must be done in that order, else it will result in an error.
+You can only add [abtesting](#abtesting) to the account after adding [crosspromo](#crosspromo). This must be done in that order, else it will result in an error.
 
 this is a player tag `BY1BJH84CVHHIX` \
-this is a player uuid `0197351b-ae06-7a3f-8576-0e3d5b95a280`
+this is a player uid `0197351b-ae06-7a3f-8576-0e3d5b95a280`
 
 Some response bodies that contain repeating data or with minor changes will be truncated to avoid repetition.
 
-The default api url is subway.prod.sybo.net
+The default api url is `subway.prod.sybo.net`
 
-### Register
+#### Auth
+
+#### Register
 
 - POST `/v2.0/auth/register`
 - Will register a player account
-- Sample request (2025-12-19):
+- Sample request (2025-12-19): \
   POST /v2.0/auth/register
-  Authorization: `Bearer <identityToken>`
 
 - Sample response:
 
@@ -72,15 +85,17 @@ The default api url is subway.prod.sybo.net
   }
   ```
 
-This will create a "empty" account that only creates a user with which you populate with a player \
-It generates a idenity and a refresh token, with a ttl (time to live)
+This creates an empty account and returns an identity token and a refresh token. \
+It generates a idenity and a refresh token, with a ttl (time to live). \
+The account itself does not yet have a player profile. To initialize the player, you must send a request to [CreatePlayer](./grpc_docs.md#create-player) with data. \
+Only after creating the player, other game-related requests, such as [UpdatePlayer](./grpc_docs.md#update-player), be used.
 
-### Refresh
+#### Refresh
 
 - POST `/v2.0/auth/refresh`
-- Get the status of the player deletion
-- Sample request (2025-12-19):
-  POST /v2.0/auth/refresh
+- Refresh the accounts identity token
+- Sample request (2025-12-19): \
+  POST /v2.0/auth/refresh \
   Authorization: `Bearer <identityToken>`
 
   Body:
@@ -103,7 +118,183 @@ It generates a idenity and a refresh token, with a ttl (time to live)
   }
   ```
 
-The Refresh request is used to refresh the accounts identity token, and continue using the account after ttl.
+This refreshes the accounts identity token and returns a new token, allowing the account to continue making authenticated requests.
+
+#### Play
+
+##### Play Connect
+
+- POST `/v1.0/auth/play/connect`
+- Play connect
+- Sample request (2026-02-26): \
+  POST /v1.0/auth/play/connect \
+  Authorization: `Bearer <identityToken>` \
+  Body:
+
+  ```json
+  {
+    "authcode": "4/0AfrIepArxA2nQmU1-..."
+  }
+  ```
+
+<h5>Default Response</h5>
+
+```json
+{
+  "idToken": "eyJhbGciOiJQUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "idTokenTtl": 604800,
+  "refreshToken": "eyJhbGciOiJQUzI1NiIsInR5cCI6IkpXVCJ9..",
+  "user": {
+    "id": "0198836e-fb91-7900-9fa4-598349e4a77d",
+    "links": [{ "type": "play", "id": "a_2520406209192914419" }]
+  }
+}
+```
+
+<h5>Error Response</h5>
+
+```json
+{ "error": "request failed", "kind": 6 }
+```
+
+##### Play Login
+
+- POST `/v1.0/auth/play/login`
+- Play login
+- Sample request (2026-02-26): \
+  POST /v1.0/auth/play/login \
+  Authorization: `Bearer <identityToken>` \
+  Body:
+
+  ```json
+  {
+    "authcode": "4/0AfrIepDPZf2gwn0pDNzTbSYhKr8twvlo-a9U-9jVP7TPS-qoj_0jDmrlJyDQbFNUkzGH7Q"
+  }
+  ```
+
+<h5>Default Response</h5>
+
+```json
+{
+  "idToken": "eyJhbGciOiJQUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "idTokenTtl": 604800,
+  "refreshToken": "eyJhbGciOiJQUzI1NiIsInR5cCI6IkpXVCJ9..",
+  "user": {
+    "id": "0198836e-fb91-7900-9fa4-598349e4a77d",
+    "links": [{ "type": "play", "id": "a_2520406209192914419" }]
+  }
+}
+```
+
+##### Play disconnect
+
+- POST `/v1.0/auth/play/disconnect`
+- Play disconnect
+- Sample request (2026-03-05): \
+  POST /v1.0/auth/play/disconnect \
+  Authorization: `Bearer <identityToken>` \
+  Body:
+  None
+
+<h5>Default Response</h5>
+
+```json
+{
+  "idToken": "eyJhbGciOiJQUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "idTokenTtl": 604800,
+  "refreshToken": "eyJhbGciOiJQUzI1NiIsInR5cCI6IkpXVCJ9..",
+  "user": {
+    "id": "0198836e-fb91-7900-9fa4-598349e4a77d",
+    "links": []
+  }
+}
+```
+
+### Abtesting
+
+- GET `/v1.0/abtesting/match`
+- Returns the accounts experiment
+- Sample request (2025-02-23): \
+  GET /v1.0/abtesting/match \
+  Authorization: `Bearer <identityToken>`
+  Body:
+
+  ```json
+  {
+    "metrics": {
+      "payer": "false",
+      "level": "1",
+      "genuine_app": "Genuine",
+      "language": "en",
+      "age": "69",
+      "platform": "android",
+      "coppa": "true",
+      "install_source": "com.android.vending",
+      "gameVersion": "3.59.0"
+    }
+  }
+  ```
+
+  <h5>Response without experiment</h5>
+
+  Status: 204
+
+  <h5>Response with experiemnt</h5>
+
+  Status: 200
+
+  ```json
+  {
+    "experimentId": "ex_interstitials_specs_v2",
+    "variantId": "ab_interstitials_specifications_D",
+    "endDate": "2026-08-29T13:58:00.107Z"
+  }
+  ```
+
+This request returns the experiment assigned to the account. \
+When you want to play with other experiments you can change them [here](./hacks.md#play-with-experiments). \
+The app uses this information to determine which tower gamedata files to load.
+
+### Crosspromo
+
+- GET `/v2.0/crosspromo/match`
+- Returns users crosspromo match
+- Sample request (2025-02-23): \
+  GET /v2.0/crosspromo/match \
+  Authorization: `Bearer <identityToken>`
+  Body:
+
+  ```json
+  {
+    "test": "false",
+    "language": "en",
+    "metrics": {
+      "payer": "false",
+      "level": "1",
+      "age": "69",
+      "genuine_app": "Genuine",
+      "language": "en",
+      "platform": "android",
+      "coppa": "true",
+      "install_source": "com.android.vending",
+      "gameVersion": "3.59.0"
+    },
+    "attribution": null
+  }
+  ```
+
+- Sample response:
+
+  ```json
+  {
+    "globalConf": {
+      "impressionCap": { "count": 50, "interval": 86400000000000 },
+      "frequencyCap": { "count": 25, "interval": 3600000000000 }
+    },
+    "campaigns": [],
+    "attribution": {}
+  }
+  ```
 
 ### Content
 
@@ -112,8 +303,8 @@ The Refresh request is used to refresh the accounts identity token, and continue
 Url is <https://manifest.tower.sybo.net>
 
 - GET `/v1.0/{game}/{version}/{type}/{secret}/{experiment}/manifest.json`
-- Get the manifest of a game version
-- Sample request (2025-12-20):
+- Gets the manifest of a game version
+- Sample request (2025-12-20): \
   GET /v1.0/{game}/{version}/{type}/{secret}/{experiment}/manifest.json
 
 For specific experiments you can set `ab_google_play`, `ab_revive_codechange` else dont set it.
@@ -205,7 +396,7 @@ For specific experiments you can set `ab_google_play`, `ab_revive_codechange` el
 Notes: \
  From this data you get the version specific manifest data. \
  Which gives useful data like gamedata hash and lifecycle. \
- You get the secret by extracting it from the game file (apk or ipa) \
+ You get the secret by extracting it from the game file (apk or ipa). \
  The `assets/settings/sybo.tower.default.json` (ipa is `Payload/SubwaySurf.app/Data/Raw/settings/sybo.tower.default.json`) file contains a key called `Secret`, with the version specific secret.
 
 **Url examples**
@@ -232,17 +423,17 @@ https://manifest.tower.sybo.net/v1.0/{game}/{version}/{platform}/{secret}/{exper
 
 - GET `/v2.0/{game}/{version}/{type}/{secret}/{experiment}/archive.zip`
 - Get the manifest of a game version
-- Sample request (2025-12-20):
+- Sample request (2025-12-20): \
   GET /v2.0/{game}/{version}/{type}/{secret}/{experiment}/archive.zip
 
-When using the v2.0 schema, you can use the `archive.zip` endpoint to get a zip of the game files. \
-It seems like the v2.0 schema only the `archive` endpoint, all other do not exist.
+When using the v2.0 schema, you can use the `archive.zip` endpoint to get a zip file of the game files. \
+It seems like the v2.0 schema only has the `archive` endpoint, all other do not exist.
 
 ```
 https://manifest.tower.sybo.net/v2.0/subway/3.49.1/android/junpNkV78FJxO4dlGAbO/archive.zip
 ```
 
-The archive.zip contains the manifest.json aswell as in a `data` folder the gamedata files.
+The archive.zip contains the manifest.json aswell as a `data` folder with the gamedata files.
 
 ```
 manifest.json
@@ -258,13 +449,13 @@ Url is <https://gamedata.tower.sybo.net>
 
 - GET `/v1.0/{game}/{secret}/{filename}.json`
 - Get gamedata files of manifest version
-- Sample request (2025-12-20):
+- Sample request (2025-12-20): \
   GET /v1.0/{game}/{secret}/{filename}.json
 
-You can get the gamedata/tower files in bypass of the old depreciated method of extracting them from apk or ipa (ipa still works), using from the manifest request contained `gamedata` hash value
+You can retrieve the gamedata/tower files using the hash value from the `gamedata` field in the manifest request, instead of the old deprecated method of extracting them from the APK or IPA (IPA extraction still works). \
 (state 3.56.0)
 
-You can request the `manifest.json`, which contains the manifest of all the existing files in the gamedata.
+You can request the `manifest.json`, which contains a list of all files included in the gamedata.
 
 ```json
 {
@@ -283,7 +474,7 @@ You can request the `manifest.json`, which contains the manifest of all the exis
       "filename": "assemblyevents.json",
       "key": "4fa66108ddd7f8bead20b40f6a8b505a9cdf098f"
     }
-    truncated
+    (truncated)
   },
   "spec": "v1.0",
   "version": "3.46.0"
@@ -300,7 +491,7 @@ Url is <https://media.sybo.net>
 
 - GET `/{game}/cross_promotion/{promotion}/Image/{image}`
 - Get media files
-- Sample request (2025-12-20):
+- Sample request (2025-12-20): \
   GET /{game}/cross_promotion/{promotion}/Image/{image}
 
 ```
@@ -316,7 +507,7 @@ Url is <https://assets.tower.sybo.net>
 
 - GET `/`
 - Get game assets files
-- Sample request (2025-12-20):
+- Sample request (2025-12-20): \
   GET /
 
 When getting the root of the url it shows what seems to be a list of a bucket
@@ -369,9 +560,11 @@ v1.0/BRIM/0004b3b2-328d-40a6-8d5c-cdb07dbfa7bc/catalog/1.0.0/catalog_2023.11.15.
 
 </details>
 
+<br>
+
 - GET `v1.0/{game}/{bundleId}/{type}/{version}/{file}`
 - Get game assets files
-- Sample request (2025-12-20):
+- Sample request (2025-12-20): \
   GET v1.0/{game}/{bundleId}/{type}/{version}/{file}
 
 ```
@@ -380,9 +573,11 @@ https://assets.tower.sybo.net/v1.0/subway/f78e0ec2-cd8a-4d77-8c25-ad227d468816/b
 
 This request will return the asset in the UnityFs format
 
-Inside the apk (`assets/aa/catalog.json`) or ios (`Payload/SubwaySurf.app/Data/Raw/aa/catalog.json`) `catalog.json` file, under the `m_InternalIds` list, you’ll find all the file entries. These are links starting with `sybo://`, such as:
+Inside the apk (`assets/aa/catalog.json`) or ios (`Payload/SubwaySurf.app/Data/Raw/aa/catalog.json`) `catalog.json` file, the `m_InternalIds` list contains all file entries. These are links starting with `sybo://`, such as:
 
-`sybo://9917a9a0-0de9-40fb-bb80-392ee596f705/bundle/1.0.0/characters-remote_assets_pixeljake_default_outfit_config_7a3d5cbdbef0e42b386ceea8f110c324.bundle`
+```
+sybo://9917a9a0-0de9-40fb-bb80-392ee596f705/bundle/1.0.0/characters-remote_assets_pixeljake_default_outfit_config_7a3d5cbdbef0e42b386ceea8f110c324.bundle
+```
 
 These entries reference the actual asset bundles used by the game.
 
@@ -391,7 +586,7 @@ These entries reference the actual asset bundles used by the game.
 #### GDPR delete
 
 - POST `/v1.0/gdpr/delete`
-- Requests a deletion
+- Requests a account deletion
 - Sample request (2025-12-19): \
   POST /v1.0/gdpr/delete \
   Authorization: `Bearer <identityToken>`
@@ -412,16 +607,14 @@ These entries reference the actual asset bundles used by the game.
 
 This is the account deletion request that will delete your account.
 
-It only deletes your public profile (that was is shown when other players look at your player) not your save data \
-when you are friends with a player you are removed from their friends list
-
-it will only delete your `player` but not your `account`, that means you can just use `CreatePlayer` request again without the need of registering again.
+It only deletes your public profile (that was is shown when other players look at your player) not your save data. \
+When you are friends with a player, you will get removed from their friends list.
 
 #### GDPR status
 
 - GET `/v1.0/gdpr/status`
 - Get the status of the player deletion
-- Sample request (2025-12-19):
+- Sample request (2025-12-19): \
   GET /v1.0/gdpr/status \
   Authorization: `Bearer <identityToken>` \
   Body:
@@ -444,7 +637,7 @@ it will only delete your `player` but not your `account`, that means you can jus
   }
   ```
 
-This is the account delete status request, with wich you get the status of the current account delete request.
+This is the account delete status request, with which you get the status of the current account delete request.
 
 ### Challenge
 
@@ -487,7 +680,7 @@ This is the account delete status request, with wich you get the status of the c
           { "key": "frame", "value": "default_frame" }
         ]
       },
-      truncated 7x
+      (truncated 7x)
       {
         "uid": "0197d683-d0f4-7563-bcc6-b285ff6fa1f5",
         "matchmakingValue": 0,
@@ -528,13 +721,19 @@ This request is made when opening the view of a challenge in the Events tab
 
 It is not known from what the `matchmakingStartValue` is from
 
-**Already send request**
+<h5>Already send request</h5>
 
 ```json
 { "error": "request failed", "kind": 6 }
 ```
 
 When setting the challengeID to `daily_challenge_nl`, you will only be able to use the get_challenge request with the challenge group for that country, here `nl`.
+
+<h5>Requesting another challenge when already having send a challenge</h5>
+
+```json
+{ "error": "request failed", "kind": 5 }
+```
 
 #### Get Challenge
 
@@ -556,6 +755,152 @@ and the country code: `en`, `nl`
 ```
 
 the country code has to be the same as in the [send](#sent-challenge) request as `matchmakingId` value
+
+#### Sent Challenge Score
+
+- POST `/v2.0/challenge/score`
+- Sends the Challenge Scores
+- Sample request (2026-03-05): \
+   POST /v2.0/challenge/score \
+   Authorization: `Bearer <identityToken>` \
+   Body:
+
+  <details>
+
+  ```json
+  {
+    "scores": [
+      {
+        "metadata": [
+          {
+            "key": "background",
+            "value": "default_background"
+          },
+          {
+            "key": "frame",
+            "value": "plant_frame"
+          },
+          {
+            "key": "portrait",
+            "value": "tagbot_portrait"
+          },
+          {
+            "key": "character",
+            "value": "jake.default"
+          },
+          {
+            "key": "board",
+            "value": "default"
+          },
+          {
+            "key": "score",
+            "value": "2147483647"
+          }
+        ],
+        "tournamentId": "marathon_de",
+        "matchmakingValue": 1
+      },
+      {
+        "metadata": [
+          {
+            "key": "background",
+            "value": "default_background"
+          },
+          {
+            "key": "frame",
+            "value": "plant_frame"
+          },
+          {
+            "key": "portrait",
+            "value": "tagbot_portrait"
+          },
+          {
+            "key": "character",
+            "value": "jake.default"
+          },
+          {
+            "key": "board",
+            "value": "default"
+          },
+          {
+            "key": "score",
+            "value": "2147483647"
+          }
+        ],
+        "tournamentId": "marathon_de",
+        "matchmakingValue": 1
+      },
+      {
+        "metadata": [
+          {
+            "key": "background",
+            "value": "default_background"
+          },
+          {
+            "key": "frame",
+            "value": "plant_frame"
+          },
+          {
+            "key": "portrait",
+            "value": "tagbot_portrait"
+          },
+          {
+            "key": "character",
+            "value": "jake.default"
+          },
+          {
+            "key": "board",
+            "value": "default"
+          },
+          {
+            "key": "score",
+            "value": "2147483647"
+          }
+        ],
+        "tournamentId": "mystery_hurdles_de",
+        "matchmakingValue": 1
+      },
+      {
+        "metadata": [
+          {
+            "key": "background",
+            "value": "default_background"
+          },
+          {
+            "key": "frame",
+            "value": "plant_frame"
+          },
+          {
+            "key": "portrait",
+            "value": "tagbot_portrait"
+          },
+          {
+            "key": "character",
+            "value": "jake.default"
+          },
+          {
+            "key": "board",
+            "value": "default"
+          },
+          {
+            "key": "score",
+            "value": "20"
+          }
+        ],
+        "tournamentId": "daily_challenge_de",
+        "matchmakingValue": 39
+      }
+    ]
+  }
+  ```
+
+  </details>
+
+  <h5>Default Response</h5>
+
+  `200 OK`
+
+This request will send the scores and player metadata of each challenge
 
 ### Tournament
 
@@ -1079,8 +1424,8 @@ the country code has to be the same as in the [send](#sent-challenge) request as
 - Returns the current player's profile files
 - Sample request (2025-10-03): \
   GET /v2.0/profile \
-  Authorization: `Bearer <identityToken>` \
-  Sample response:
+  Authorization: `Bearer <identityToken>`
+- Sample response:
 
   ```json
   {
@@ -1095,7 +1440,7 @@ Returns the current player's profile files
 
 When the player has never received profile data, it will return with a 404 error.
 
-#### Get Profile
+#### Get Player Profile
 
 - GET `/v2.0/profile/<uuid>`
 - Returns the given uuids player's profile files
@@ -1122,10 +1467,10 @@ When the id doesn't exist or it has never received profile data, then it will re
 
 #### Send Profile
 
-- Method: POST /v2.0/profile
+- POST /v2.0/profile
 - Send the current player's profile save files
 - Request (2025-10-03): \
-  POST /v2.0/profile
+  POST /v2.0/profile \
   Authorization: `Bearer <identityToken>` \
   Body:
 
@@ -1178,6 +1523,142 @@ Changes:
     "hash": "4d2bd1660d5428daf513c8339ee5e1a7bfabf12b"
   }
   ```
+
+### Mail
+
+> [!NOTE]  
+> This data is from the game _Subway Surfers City_.\
+> The Apis from both games are pretty much the same so it is included here.
+
+#### Get
+
+- POST `/v2.0/mail`
+- Gets a Announcement
+- Sample request (2025-01-25): \
+  POST /v2.0/mail \
+  Authorization: `Bearer <identityToken>` \
+  Body:
+
+  ```json
+  {
+    "language": "en",
+    "metrics": {
+      "age": "47",
+      "language": "en",
+      "platform": "android",
+      "coppa": "false",
+      "gameVersion": "1.29.1"
+    }
+  }
+  ```
+
+<h5>Default Response</h5>
+
+```json
+{ "mail": [] }
+```
+
+<h5>With a Announcement</h5>
+
+```json
+{
+  "mail": [
+    {
+      "id": "f27141a8-b794-4cf8-9555-50bfac5c9b9d",
+      "sender": { "uid": "1234", "name": "SYBO Games" },
+      "header": "Your opinion matters!",
+      "body": "We need your help making the game better by learning what's important to you! Help us fill out this survey and let us know what you think.\n\n",
+      "expires": "2026-01-30T14:23:00Z",
+      "metadata": [],
+      "attachments": [],
+      "actions": [
+        {
+          "type": "SurveyLink",
+          "value": "https://subwaysurf.typeform.com/to/uPOujPGa",
+          "metadata": []
+        }
+      ],
+      "media": [],
+      "receiver": { "uid": "019bfc8a-a7f9-79f2-995b-b1cd06b5e5ec" },
+      "sent": "2026-01-26T23:18:00.783351Z",
+      "read": null
+    }
+  ]
+}
+```
+
+<h5>With a Announcement (read)</h5>
+
+```json
+{
+  "mail": [
+    {
+      "id": "f27141a8-b794-4cf8-9555-50bfac5c9b9d",
+      "sender": { "uid": "1234", "name": "SYBO Games" },
+      "header": "Your opinion matters!",
+      "body": "We need your help making the game better by learning what's important to you! Help us fill out this survey and let us know what you think.\n\n",
+      "expires": "2026-02-24T15:12:11.864422Z",
+      "metadata": [],
+      "attachments": [],
+      "actions": [
+        {
+          "type": "SurveyLink",
+          "value": "https://subwaysurf.typeform.com/to/uPOujPGa",
+          "metadata": []
+        }
+      ],
+      "media": [],
+      "receiver": { "uid": "019b364d-ab94-7620-bbb4-e026788dbf4a" },
+      "sent": "2026-01-25T15:12:03.314419Z",
+      "read": "2026-01-25T15:12:11.864422Z"
+    }
+  ]
+}
+```
+
+#### Read
+
+- POST `/v2.0/mail`
+- Reads an Announcement
+- Sample request (2025-01-25): \
+  POST /v2.0/mail \
+  Authorization: `Bearer <identityToken>` \
+  Body:
+
+  ```json
+  {
+    "id": "f27141a8-b794-4cf8-9555-50bfac5c9b9d"
+  }
+  ```
+
+<h5>Default Response</h5>
+
+`200 OK`
+
+#### Claim
+
+- POST `/v2.0/mail/claim`
+- Claims Attached Rewards
+- Sample request (2025-01-25): \
+  POST /v2.0/mail/claim \
+  Authorization: `Bearer <identityToken>` \
+  Body:
+
+  ```json
+  {
+    "id": "f27141a8-b794-4cf8-9555-50bfac5c9b9d"
+  }
+  ```
+
+<h5>Default Response</h5>
+
+`200 OK`
+
+<h5>Mail uuid dosnt exist</h5>
+
+```json
+{ "error": "request failed", "kind": 3 }
+```
 
 ### Analytics
 
@@ -1236,9 +1717,9 @@ https://subway-surfers.sng.link/A8yjk/diz7?_dl=subwaysurfers://&pcn=default&_p={
 
 **Status codes**
 
-3. Already redeemed
-4. Promocode doesn't exist
-5. Promocode Expired
+`3` Already redeemed \
+`4` Promocode doesn't exist \
+`5` Promocode Expired
 
 Redeem codes
 
@@ -1250,8 +1731,4 @@ discord10
 
 ```
 https://subway-surfers.sng.link/A8yjk/ucg6?_dl=subwaysurfers://&pcn=default&_p={"subway_promo_code":"{promoCode}"}
-```
-
-```
-
 ```

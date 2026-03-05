@@ -107,6 +107,42 @@ def get_mail(
         print(r.json())
 
 
+def read_mail(id: str):
+    url = api_url + "/v2.0/mail"
+
+    data = {"id": id}
+
+    with httpx.Client(http2=True) as client:
+        r = client.post(
+            url,
+            headers={
+                **headers,
+                "Authorization": f"Bearer {identityToken}",
+            },
+            json=data,
+        )
+
+        print(r.json())
+
+
+def claim_mail(id: str):
+    url = api_url + "/v2.0/mail/claim"
+
+    data = {"id": id}
+
+    with httpx.Client(http2=True) as client:
+        r = client.post(
+            url,
+            headers={
+                **headers,
+                "Authorization": f"Bearer {identityToken}",
+            },
+            json=data,
+        )
+
+        print(r.json())
+
+
 def get_tournament():
     url = api_url + "/v3.0/tournament/group"
 

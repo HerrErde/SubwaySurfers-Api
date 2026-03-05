@@ -1,52 +1,74 @@
 RPC
 
-- [x] GetPlayerByTag
-- [x] GetPlayerById
-- [x] CreatePlayer
-- [x] GetPlayer
-- [x] UpdatePlayer
-- [x] GetFriends
-- [x] GetInvites
-- [x] SendInvite
-- [x] GetFriendAndInvitesResponse
-- [x] AcceptInvite Empty Response
-- [x] CancelInvite Empty Response
-- [x] DeclineInvite Empty Response
-- [x] RemoveFriend Empty Response
-- [x] GetRelationship
-- [x] GetWallet
-- [x] InitializeEnergy
-- [x] GetEnergies
-- [x] UseEnergy
-- [x] AddEnergy
-- [x] Match
-- [x] Consume
+- player
+  - [x] CreatePlayer
+  - [x] GetPlayer
+  - [x] GetPlayerByTag
+  - [x] GetPlayerById
+  - [x] UpdatePlayer
+  - [x] Match
+  - [x] GetConfig
+- friends
+  - [x] GetFriends
+  - [x] GetInvites
+  - [x] SendInvite
+  - [x] GetFriendAndInvitesResponse
+  - [x] AcceptInvite Empty Response
+  - [x] CancelInvite Empty Response
+  - [x] DeclineInvite Empty Response
+  - [x] RemoveFriend Empty Response
+  - [x] GetRelationship
+- wallet
+  - [x] GetWallet
+  - [x] Consume
+- energy
+  - [x] InitializeEnergy
+  - [x] GetEnergies
+  - [x] UseEnergy
+  - [x] AddEnergy
 
 Json
 
-- [x] register
-- [x] refresh
-- [x] mail
-- [x] get/send tournament
-- [x] manifest
-- [x] gamedata
-- [x] media
-- [ ] events
-- [ ] analytics
+- [x] auth
+  - [x] register
+  - [x] refresh
+  - [x] play
+    - [x] login
+    - [x] connect
+    - [x] disconnect
+  - [x] facebook
+    - [x] connect
+    - [x] disconnect
 - [x] abtesting
 - [x] crosspromo
-- [x] assets
-- [ ] metrics
-- [x] gdpr delete
-- [x] gdpr status
+- [x] content
+  - [x] manifest
+  - [x] gamedata
+  - [x] media
+  - [x] assets
+- [x] gdpr
+  - [x] delete
+  - [x] status
+- [x] challenge
+  - [x] sent challenge
+  - [x] get challenge
+  - [x] score
+- [x] tournament
+  - [x] get
+  - [x] send
 - [x] profile
   - [x] user
   - [x] get
   - [x] send
-- [ ] websdk
+- [x] mail
+  - [ ] get
+  - [ ] read
+  - [ ] claim
+- [ ] analytics
 - [x] redeem
-- [x] daily_challenge
-- [x] challenge
+- [ ] metrics
+- [ ] websdk
+- [ ] events
 
 <https://apidocs.helpshift.com/>
 
