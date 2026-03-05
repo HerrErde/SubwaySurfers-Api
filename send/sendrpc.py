@@ -6,7 +6,6 @@ from dotenv import load_dotenv
 from google.protobuf.any_pb2 import Any
 from google.rpc import error_details_pb2, status_pb2
 
-
 api_url = "https://subway.prod.sybo.net"
 game = "subway"
 
@@ -826,6 +825,207 @@ def match():
         print("gRPC payload (hex):", grpc_payload.hex())
 
 
+def get_tournamentinfo(tournament_id: str, type: str, locale: str):
+    from player_pb2 import TournamentRequest, TournamentResponse
+
+    url = api_url + "/rpc/tournament.ext.v2.PrivateService/GetTournamentInfo"
+
+    msg = TournamentRequest(
+        tournament=TournamentRequest.Tournament(
+            id=tournament_id,
+        ),
+        tournamentconfig=TournamentRequest.TournamentConfig(
+            type=type,
+            locale=locale,
+        ),
+    )
+
+    body = framing(msg)
+
+    with httpx.Client(http2=True) as client:
+        r = client.post(
+            url,
+            headers=headers,
+            content=body,
+        )
+
+    raw = r.content
+    if len(raw) < 5:
+        print("Response too short")
+        return
+
+    msg_len = int.from_bytes(raw[1:5], "big")
+    grpc_payload = raw[5 : 5 + msg_len]
+
+    try:
+        resp = TournamentResponse()
+        resp.ParseFromString(grpc_payload)
+        print(resp)
+    except Exception as e:
+        print("Failed to parse response:", e)
+        print("gRPC payload (hex):", grpc_payload.hex())
+
+
+def jointournament(tournament_id: str, type: str, locale: str):
+    from player_pb2 import TournamentRequest, TournamentResponse
+
+    url = api_url + "/rpc/tournament.ext.v2.PrivateService/JoinTournament"
+
+    msg = TournamentRequest(
+        tournament=TournamentRequest.Tournament(
+            id=tournament_id,
+        ),
+        tournamentconfig=TournamentRequest.TournamentConfig(
+            type=type,
+            locale=locale,
+        ),
+    )
+
+    body = framing(msg)
+
+    with httpx.Client(http2=True) as client:
+        r = client.post(
+            url,
+            headers=headers,
+            content=body,
+        )
+
+    raw = r.content
+
+    msg_len = int.from_bytes(raw[1:5], "big")
+    grpc_payload = raw[5 : 5 + msg_len]
+
+    try:
+        resp = TournamentResponse()
+        resp.ParseFromString(grpc_payload)
+        print(resp)
+    except Exception as e:
+        print("Failed to parse response:", e)
+        message = r.headers.get("grpc-message")
+        print("gRPC message:", message)
+        print("gRPC payload (hex):", grpc_payload.hex())
+
+
+def submitscore(
+    tournament_id: str,
+    score: int,
+    time: int,
+    sec: int,
+    nsec: int,
+    type: str,
+    locale: str,
+):
+    from player_pb2 import Empty, SubmitScoreRequest, Time
+
+    url = api_url + "/rpc/tournament.ext.v2.PrivateService/SubmitScore"
+
+    msg = SubmitScoreRequest(
+        tournament=SubmitScoreRequest.SubmitTournament(id=tournament_id),
+        tournamentscore=SubmitScoreRequest.TournamentGame(
+            score=score,
+            time=SubmitScoreRequest.TournamentGame.GameTime(sec=time),
+            submit_at=Time(sec=sec, nsec=nsec),
+        ),
+        tournamenttype=SubmitScoreRequest.TournamentConfig(type=type, locale=locale),
+    )
+
+    body = framing(msg)
+
+    with httpx.Client(http2=True) as client:
+        r = client.post(
+            url,
+            headers=headers,
+            content=body,
+        )
+
+    raw = r.content
+
+    msg_len = int.from_bytes(raw[1:5], "big")
+    grpc_payload = raw[5 : 5 + msg_len]
+
+    try:
+        resp = Empty()
+        resp.ParseFromString(grpc_payload)
+    except Exception as e:
+        print("Failed to parse response:", e)
+        print("gRPC payload (hex):", grpc_payload.hex())
+
+
+def get_scores(tournament_id: str):
+    from player_pb2 import TournamentRequest, TournamentResponse
+
+    url = api_url + "/rpc/tournament.ext.v2.PrivateService/GetScores"
+
+    msg = TournamentRequest(
+        tournament=TournamentRequest.Tournament(
+            id=tournament_id,
+        )
+    )
+
+    body = framing(msg)
+
+    with httpx.Client(http2=True) as client:
+        r = client.post(
+            url,
+            headers=headers,
+            content=body,
+        )
+
+    raw = r.content
+    if len(raw) < 5:
+        print("Response too short")
+        return
+
+    msg_len = int.from_bytes(raw[1:5], "big")
+    grpc_payload = raw[5 : 5 + msg_len]
+
+    try:
+        resp = TournamentResponse()
+        resp.ParseFromString(grpc_payload)
+        print(resp)
+    except Exception as e:
+        print("Failed to parse response:", e)
+        print("gRPC payload (hex):", grpc_payload.hex())
+
+
+def get_config():
+    from player_pb2 import Empty, ConfigResponse
+
+    url = api_url + "/rpc/player.ext.v1.PrivateService/GetConfig"
+
+    msg = Empty()
+
+    body = framing(msg)
+
+    with httpx.Client(http2=True) as client:
+        r = client.post(
+            url,
+            headers=headers,
+            content=body,
+        )
+
+    raw = r.content
+    if len(raw) < 5:
+        print("Response too short")
+        return
+    elif r.content:
+        if "text/html" in r.headers.get("Content-Type"):
+            print("Content is html")
+            return
+
+    msg_len = int.from_bytes(raw[1:5], "big")
+    grpc_payload = raw[5 : 5 + msg_len]
+
+    try:
+        resp = ConfigResponse()
+        resp.ParseFromString(grpc_payload)
+        print(resp)
+    except Exception as e:
+        print("Failed to parse response:", e)
+        message = r.headers.get("grpc-message")
+        print("gRPC message:", message)
+        print("gRPC payload (hex):", grpc_payload.hex())
+
 # get_player_by_tag("N99635VZB9NFPD")
 # get_player_by_id("fca24390-4e4e-4994-a02a-3aab323129a2")
 # create_player()
@@ -847,3 +1047,8 @@ def match():
 # get_energies()
 # use_energy("0197780a-77bc-7bb8-bf9b-687fa58a53c0", 1)
 # add_energy("0197780a-77bc-7bb8-bf9b-687fa58a53c0", 1)
+# get_scores("surfers_league_s114_v0")
+# submitscore("surfers_league_s114_v0",90,9223372036854775807,1772195592,740247100,"default","zz")
+# jointournament("surfers_league_s114_v0", "default", "zz")
+# get_tournamentinfo("surfers_league_s114_v0", "default", "zz")
+# get_config()

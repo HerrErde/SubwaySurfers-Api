@@ -23,8 +23,8 @@ message PlayerRequest {
 
 message UpdatePlayerRequest {
   string name = 1;
-  uint64 level = 2;
-  uint64 highscore = 3;
+  optional uint64 level = 2;
+  optional uint64 highscore = 3;
   map<string, string> metadata = 4;
 }
 
@@ -41,9 +41,9 @@ message UserData {
   map<string, string> metadata = 5;
   Time created_at = 6;
   Time updated_at = 7;
-  Time name_changed_at = 8;
+  Time renamed_at = 8;
   string uuid = 9;
-  Time name_change_expires_at = 10;
+  Time renameble_at = 10;
 }
 
 message PlayerResponse {
@@ -69,8 +69,8 @@ message SendInvite {
 }
 
 message GetInvitesResponse {
-  repeated ReceivedInvite received_invites = 1; // received invites
-  repeated SendInvite sent_invites = 2; // sent invites
+  repeated ReceivedInvite received_invites = 1;
+  repeated SendInvite sent_invites = 2;
   InviteQuota quota = 3;
 }
 
@@ -86,7 +86,7 @@ message SendInviteResponse {
 }
 
 message GetFriendsResponse {
-  repeated UserInfo friend = 1;
+  repeated UserInfo friends = 1;
   InviteQuota quota = 2;
 }
 
@@ -110,4 +110,96 @@ message GetFriendAndInvitesResponse {
   repeated ReceivedInvite received_invites = 2;
   repeated SendInvite sent_invites = 3;
   InviteQuota quota = 4;
+}
+
+message ConfigResponse {
+  message ConfigData {
+    message UsernameRules {
+      message CharRange {
+        uint32 min = 1;
+        uint32 max = 2;
+      }
+
+      string allowed_regex = 3;
+      repeated CharRange allowed_ranges = 4;
+    }
+
+    UsernameRules username = 6;
+  }
+
+  ConfigData config = 1;
+}
+
+message TournamentRequest {
+  message Tournament {
+    string id = 1;
+  }
+  message TournamentConfig {
+    string type = 1;
+    string locale = 2;
+  }
+
+  Tournament tournament = 1;
+  optional TournamentConfig tournamentconfig = 2;
+}
+
+message TournamentResponse {
+  message Tournament {
+    string tournament = 1;
+  }
+
+  message TournamentTime {
+    message TournamentTimeInner {
+      uint64 time = 1;
+    }
+
+    TournamentTimeInner start = 1;
+    TournamentTimeInner end = 2;
+  }
+
+  message TournamentPlayer {
+    message TournamentPlayerInner {
+      string uuid = 1;
+      uint64 position = 2;
+      uint64 trophies = 3;
+      UserData user_data = 5;
+    }
+    TournamentPlayerInner self = 1;
+    repeated TournamentPlayerInner opponents = 2;
+  }
+
+  message TournamentInfo {
+    string rank = 1;
+    uint64 value2 = 2;
+    uint64 amount = 3;
+  }
+
+  Tournament tournament = 1;
+  TournamentTime tournament_time = 2;
+  TournamentPlayer players = 3;
+  repeated TournamentInfo items = 4;
+}
+
+message SubmitScoreRequest {
+  message SubmitTournament {
+    string id = 1;
+  }
+
+  message TournamentGame {
+    message GameTime {
+      uint64 sec = 1;
+    }
+    uint64 score = 1;
+    GameTime time = 2;
+    Time submit_at = 3;
+  }
+
+  message TournamentConfig {
+    string type = 1;
+    string locale = 2;
+  }
+
+  SubmitTournament tournament = 1;
+  TournamentGame tournamentscore = 2;
+  TournamentConfig tournamenttype = 3;
 }

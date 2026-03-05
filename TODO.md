@@ -26,6 +26,13 @@ RPC
   - [x] GetEnergies
   - [x] UseEnergy
   - [x] AddEnergy
+- tournament
+  - [x] JoinTournament
+  - [x] GetTournamentInfo
+  - [x] SubmitScore
+  - [x] GetScores
+  - [ ] GetResults
+  - [ ] ClaimRewards
 
 Json
 

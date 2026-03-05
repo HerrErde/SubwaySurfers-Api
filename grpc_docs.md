@@ -20,6 +20,8 @@
       - [Get Player](#get-player)
       - [Get Player by Tag](#get-player-by-tag)
       - [Get Player by Id](#get-player-by-id)
+      - [Match](#match)
+      - [Config](#config)
     - [Friend Action](#friend-action)
       - [Get Friends](#get-friends)
       - [Get Invites](#get-invites)
@@ -39,22 +41,26 @@
       - [Get Energies](#get-energies)
       - [Use Energies](#use-energies)
       - [Add Energy](#add-energy)
-    - [Match](#match)
+    - [Tournament](#tournament)
+      - [GetTournamentInfo](#gettournamentinfo)
+      - [JoinTournament](#jointournament)
+      - [SubmitScore](#submitscore)
+      - [GetScores](#getscores)
 
 </details>
 
 ## General Notes
 
-All knowledge is for versions `3.52.1`
+All knowledge is for versions `3.52.2`
 
 > [!WARNING]
 > Changes are expected to happen
 
 grpc-status-details-bin content is base64
 
-After registering and getting an account, you'll have to create a player to use all the requests; otherwise, the account is 'empty' and can't perform player actions.
+After registering an account, you'll have to create a player to use all the requests; otherwise, the account is 'empty' and can't perform player actions.
 
-You can only add abtesting to the account after adding crosspromo. This must be done in that order, else it will result in an error.
+You can only add [abtesting](#abtesting) to the account after adding [crosspromo](#crosspromo). This must be done in that order, else it will result in an error.
 
 All time values are in epoch time.
 
@@ -172,12 +178,12 @@ user_data {
     sec: 1748945058
     nsec: 90790000
   }
-  name_changed_at {
+  renamed_at {
     sec: 1748945058
     nsec: 89156000
   }
   uuid: "0197351b-ae06-7a3f-8576-0e3d5b95a280"
-  name_change_expires_at {
+  renameble_at {
     sec: 1749549858
     nsec: 89156000
   }
@@ -199,9 +205,197 @@ quota  {
 }
 ```
 
+The Amount of the `max_invites` was increased from 10 to 50. (2025-12-20)
+
 </details>
 
-The Quota for the `max_invites` was increased from 10 to 50. (2025-12-20)
+<details id="tournament_info">
+  <summary>TournamentInfo</summary>
+
+```json
+tournament {
+  tournament: "surfers_league_s114"
+}
+tournament_time {
+  start {
+    time: 1771804800
+  }
+  end {
+    time: 1773014400
+  }
+}
+players {
+  self {
+    uuid: "019c343a-32ec-7000-ab78-de96582fa6bc"
+    position: 25
+    trophies: 80
+    user_data {
+      name: "RunningSindri"
+      tag: "PDADHMHWA9SSLT"
+      level: 39
+      highscore: 263924
+      metadata {
+        key: "stat_total_visited_destinations"
+        value: "3"
+      }
+      metadata {
+        key: "stat_total_top_run_medals_silver"
+        value: "0"
+      }
+      metadata {
+        key: "stat_total_top_run_medals_gold"
+        value: "0"
+      }
+      metadata {
+        key: "stat_total_top_run_medals_diamond"
+        value: "0"
+      }
+      metadata {
+        key: "stat_total_top_run_medals_champion"
+        value: "0"
+      }
+      metadata {
+        key: "stat_total_top_run_medals_bronze"
+        value: "2"
+      }
+      metadata {
+        key: "stat_total_games"
+        value: "7"
+      }
+      metadata {
+        key: "stat_owned_characters"
+        value: "268"
+      }
+      metadata {
+        key: "stat_owned_characters_outfits"
+        value: "212"
+      }
+      metadata {
+        key: "stat_owned_boards"
+        value: "309"
+      }
+      metadata {
+        key: "stat_owned_boards_upgrades"
+        value: "197"
+      }
+      metadata {
+        key: "stat_achievements"
+        value: "40"
+      }
+      metadata {
+        key: "selected_portrait"
+        value: "jake_portrait"
+      }
+      metadata {
+        key: "selected_frame"
+        value: "default_frame"
+      }
+      metadata {
+        key: "selected_country"
+        value: "de"
+      }
+      metadata {
+        key: "selected_character"
+        value: "jake.default"
+      }
+      metadata {
+        key: "selected_board"
+        value: "default"
+      }
+      metadata {
+        key: "selected_board_upgrades"
+        value: ""
+      }
+      metadata {
+        key: "selected_background"
+        value: "default_background"
+      }
+      metadata {
+        key: "highscore_default"
+        value: "2147383647"
+      }
+      metadata {
+        key: "equipped_badge_tier_4"
+        value: "4"
+      }
+      metadata {
+        key: "equipped_badge_tier_3"
+        value: "4"
+      }
+      metadata {
+        key: "equipped_badge_tier_2"
+        value: "4"
+      }
+      metadata {
+        key: "equipped_badge_tier_1"
+        value: "4"
+      }
+      metadata {
+        key: "equipped_badge_4"
+        value: "achievement_29"
+      }
+      metadata {
+        key: "equipped_badge_3"
+        value: "achievement_32"
+      }
+      metadata {
+        key: "equipped_badge_2"
+        value: "achievement_33"
+      }
+      metadata {
+        key: "equipped_badge_1"
+        value: "achievement_34"
+      }
+      createdAt {
+        sec: 1770916633
+        nsec: 40647000
+      }
+      updatedAt {
+        sec: 1772645068
+        nsec: 859810000
+      }
+      uuid: "019c343a-32ec-7000-ab78-de96582fa6bc"
+    }
+  }
+  opponents {
+    uuid: "019b92e6-9e37-76c1-a6b9-f4aa61be56fa"
+    position: 1
+    trophies: 1581
+    user_data {
+      name: "HoveringGeorge"
+      tag: "INWYH87EG1MDU4"
+      level: 30
+      highscore: 3114335
+      metadata {
+        key: "stat_total_visited_destinations"
+        value: "11"
+      }
+      (truncated metadata)
+      createdAt {
+        sec: 1769012926
+        nsec: 989466000
+      }
+      updatedAt {
+        sec: 1772647660
+        nsec: 481621000
+      }
+      uuid: "019b92e6-9e37-76c1-a6b9-f4aa61be56fa"
+    }
+  }
+  (truncated x49)
+items {
+  rank: "champion"
+  value2: 1
+  amount: 1
+}
+items {
+  rank: "runner_up"
+  value2: 1
+  amount: 999
+}
+```
+
+</details>
 
 ### Identity File
 
@@ -273,7 +467,7 @@ refresh token
 #### Create Player
 
 - POST `/rpc/player.ext.v1.PrivateService/CreatePlayer`
-- Creates a Player into the account
+- Creates the Player profile
 - Sample request (2025-12-20): \
   POST /rpc/player.ext.v1.PrivateService/CreatePlayer \
   Authorization: `Bearer <identityToken>` \
@@ -575,6 +769,50 @@ you need first the uuid of the player which you can get via the tag (invite id) 
 
 It is not possible to get the data via a `action_uuid`, it will result in an error
 
+#### Match
+
+- POST `/rpc/player.ext.v1.PrivateService/Match`
+- Gets 5 random players
+- Sample request (2025-12-20): \
+  POST /rpc/player.ext.v1.PrivateService/Match \
+  Authorization: `Bearer <identityToken>` \
+  msg: Empty \
+  resp: PlayerResponse
+
+This is used for generating a Match or a Player game group.
+It will output 5 random players as [`PlayerResponse`](#player_response) bodies.
+
+#### Config
+
+- POST `/rpc/player.ext.v1.PrivateService/Config`
+- Gets 5 random players
+- Sample request (2025-12-20): \
+  POST /rpc/player.ext.v1.PrivateService/Match \
+  Authorization: `Bearer <identityToken>` \
+  msg: Empty \
+  resp: ConfigResponse
+
+This request response apperantly shows the username allowence rules.
+
+- regex rule "^[A-Za-z]\*$"
+- numeric Unicode ranges (65–90 = A–Z, 97–122 = a–z)
+
+```json
+config {
+  username {
+    allowed_regex: "^[\\u0041-\\u005A\\u0061-\\u007A]*$"
+    allowed_ranges {
+      min: 65
+      max: 90
+    }
+    allowed_ranges {
+      min: 97
+      max: 122
+    }
+  }
+}
+```
+
 ### Friend Action
 
 The max amount of Friends a User can have is 100 Friends.
@@ -635,7 +873,7 @@ received_invites {
         key: "stat_total_visited_destinations"
         value: "14"
       }
-      truncated metadata...
+      (truncated metadata)
       created_at {
         sec: 1748849282
         nsec: 424557000
@@ -645,7 +883,7 @@ received_invites {
         nsec: 687280000
       }
       uuid: "01972f8a-4c30-723d-8d67-0ee30cf56335"
-      name_change_expires_at {
+      renameble_at {
         sec: 1749052404
         nsec: 666831000
       }
@@ -963,7 +1201,7 @@ It will, when having bought skip ad tickets, contain them in the `items` dict as
 { "wallet": { "items": {}, "updatedAt": "2025-09-29T11:42:16.550165Z" } }
 ```
 
-<h5>efault Response (Bought Tickets)</h5>
+<h5>Default Response (Bought Tickets)</h5>
 
 ```json
 {
@@ -999,7 +1237,7 @@ Or the this offerid is the skip ad ticket that is consumed(no idea). \
 }
 ```
 
-**Default Response**
+<h5>Default Response</h5>
 
 ```json
 {
@@ -1257,15 +1495,55 @@ It has a limit of 10 times per 24 hours.
   in the app it will display as <code>13/3</code>.
 </details>
 
-### Match
+### Tournament
 
-- POST `/rpc/player.ext.v1.PrivateService/Match`
+#### GetTournamentInfo
+
+- POST `/rpc/tournament.ext.v2.PrivateService/GetTournamentInfo`
 - Gets 5 random players
-- Sample request (2025-12-20): \
-  POST /rpc/player.ext.v1.PrivateService/Match \
+- Sample request (2025-03-04): \
+  POST /rpc/tournament.ext.v2.PrivateService/GetTournamentInfo \
   Authorization: `Bearer <identityToken>` \
-  msg: Empty \
-  resp: PlayerResponse
+  msg: TournamentRequest \
+  resp: TournamentResponse
 
-This is used for generating a Match or a Player game group.
-It will output 5 random players as [`PlayerResponse`](#player_response) bodies.
+This Request returns the [TournamentInfo](#tournament_info) body without player data.
+
+#### JoinTournament
+
+- POST `/rpc/tournament.ext.v2.PrivateService/GetTournamentInfo`
+- Gets 5 random players
+- Sample request (2025-03-04): \
+  POST /rpc/tournament.ext.v2.PrivateService/GetTournamentInfo \
+  Authorization: `Bearer <identityToken>` \
+  msg: TournamentRequest \
+  resp: TournamentResponse
+
+This Request returns the [TournamentInfo](#tournament_info) body. \
+This request can only be made when a SubmitScore request was made.
+
+#### SubmitScore
+
+- POST `/rpc/tournament.ext.v2.PrivateService/GetScores`
+- Submit Game and Score data for a Tournament
+- Sample request (2025-03-04): \
+  POST /rpc/tournament.ext.v2.PrivateService/GetScores \
+  Authorization: `Bearer <identityToken>` \
+  msg: SubmitScoreRequest \
+  resp: Empty
+
+With this request you submit the game and score data of a Tournament Showdown. \
+This Score is then shown in the Leaderbord.
+
+#### GetScores
+
+- POST `/rpc/tournament.ext.v2.PrivateService/GetScores`
+- Gets Tournament Info with opponents
+- Sample request (2025-03-04): \
+  POST /rpc/tournament.ext.v2.PrivateService/GetScores \
+  Authorization: `Bearer <identityToken>` \
+  msg: TournamentRequest \
+  resp: TournamentResponse
+
+This Request returns the [TournamentInfo](#tournament_info) body. \
+This request can only be made when a JoinTournament request was made.

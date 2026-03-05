@@ -59,7 +59,7 @@ After registering an account, you'll have to create a player to use all the requ
 You can only add [abtesting](#abtesting) to the account after adding [crosspromo](#crosspromo). This must be done in that order, else it will result in an error.
 
 this is a player tag `BY1BJH84CVHHIX` \
-this is a player uid `0197351b-ae06-7a3f-8576-0e3d5b95a280`
+this is a player uuid `0197351b-ae06-7a3f-8576-0e3d5b95a280`
 
 Some response bodies that contain repeating data or with minor changes will be truncated to avoid repetition.
 
