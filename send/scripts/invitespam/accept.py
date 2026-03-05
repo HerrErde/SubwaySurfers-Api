@@ -2,7 +2,6 @@ import os
 
 import httpx
 from dotenv import load_dotenv
-from player_pb2 import PlayerResponse, StatusResponse, Empty
 
 load_dotenv()
 identityToken = str(os.environ.get("IDENTITYTOKEN", ""))
@@ -18,11 +17,22 @@ headers = {
 }
 
 
+def framing(msg):
+    payload = msg.SerializeToString()
+
+    # gRPC-Web framing
+    body = b"\x00" + len(payload).to_bytes(4, "big") + payload
+
+    return body
+
+
 def get_invites():
+    from player_pb2 import Empty, GetInvitesResponse
+
     url = f"{api_url}/rpc/friends.ext.v1.PrivateService/GetInvites"
     msg = Empty()
-    payload = msg.SerializeToString()
-    body = b"\x00" + len(payload).to_bytes(4, "big") + payload
+
+    body = framing(msg)
 
     with httpx.Client(http2=True) as client:
         r = client.post(url, headers=headers, content=body)
@@ -44,20 +54,24 @@ def get_invites():
     grpc_payload = raw[5 : 5 + msg_len]
 
     try:
-        resp = PlayerResponse()
+        resp = GetInvitesResponse()
         resp.ParseFromString(grpc_payload)
-        return resp.invite
+        return resp.received_invites
     except Exception as e:
         print("Failed to parse response:", e)
         return []
 
 
 def accept_invite(action_uuid: str):
+    from player_pb2 import PlayerRequest, Empty
+
     url = f"{api_url}/rpc/friends.ext.v1.PrivateService/AcceptInvite"
-    encoded_uuid = action_uuid.encode("utf-8")
-    protobuf_payload = b"\x0a" + len(encoded_uuid).to_bytes(1, "big") + encoded_uuid
-    prefix = b"\x00" + len(protobuf_payload).to_bytes(4, "big")
-    body = prefix + protobuf_payload
+
+    msg = PlayerRequest(
+        player=action_uuid,
+    )
+
+    body = framing(msg)
 
     with httpx.Client(http2=True) as client:
         r = client.post(url, headers=headers, content=body)
@@ -75,7 +89,7 @@ def accept_invite(action_uuid: str):
     grpc_payload = raw[5 : 5 + msg_len]
 
     try:
-        resp = StatusResponse()
+        resp = Empty()
         resp.ParseFromString(grpc_payload)
         print(f"✅ Accepted invite: {action_uuid}")
     except Exception as e:
@@ -92,7 +106,7 @@ def main():
         action_uuid = getattr(invite, "action_uuid", None)
         if action_uuid:
             print(
-                f"Processing invite from: {invite.user_info.details.name} (UUID: {action_uuid})"
+                f"Processing invite from: {invite.user_info.user_data.name} (UUID: {action_uuid})"
             )
             accept_invite(action_uuid)
         else:

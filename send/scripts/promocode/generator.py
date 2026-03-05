@@ -1,8 +1,8 @@
 import json
-import random
 import os
-import requests
+import random
 
+import httpx
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -92,18 +92,27 @@ BASE_URL = "https://github.com/HerrErde/subway-source/releases/latest/download/"
 
 
 def download_missing_files():
-    for file in FILES:
-        file_path = os.path.join(BASE_DIR, file)
-        if not os.path.exists(file_path):
-            url = f"{BASE_URL}{file}"
-            print(f"Downloading {file} from {url}...")
-            response = requests.get(url)
-            if response.status_code == 200:
-                with open(file_path, "wb") as f:
-                    f.write(response.content)
-                print(f"Saved {file} to {file_path}")
-            else:
-                print(f"Failed to download {file}: HTTP {response.status_code}")
+    with httpx.Client(timeout=30.0, follow_redirects=True) as client:
+        for file in FILES:
+            file_path = os.path.join(BASE_DIR, file)
+
+            if not os.path.exists(file_path):
+                url = f"{BASE_URL}{file}"
+                print(f"Downloading {file}...")
+
+                try:
+                    response = client.get(url)
+                    response.raise_for_status()
+
+                    with open(file_path, "wb") as f:
+                        f.write(response.content)
+
+                    print(f"Saved {file} to {file_path}")
+
+                except httpx.HTTPStatusError as e:
+                    print(f"Failed to download {file}: HTTP {e.response.status_code}")
+                except httpx.RequestError as e:
+                    print(f"Request error while downloading {file}: {e}")
 
 
 if __name__ == "__main__":

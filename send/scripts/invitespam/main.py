@@ -6,11 +6,6 @@ from pathlib import Path
 
 import httpx
 from generator import *
-from player_pb2 import (
-    CreatePlayerRequest,
-    UpdatePlayerRequest,
-    PlayerResponse,
-)
 
 uuid_pattern = re.compile(
     r"\b[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}\b"
@@ -19,6 +14,15 @@ tag_pattern = re.compile(r"^[A-Z0-9]{14}$")
 
 api_url = "https://subway.prod.sybo.net"
 user_agent = "grpc-dotnet/2.63.0 (Mono Unity; CLR 4.0.30319.17020; netstandard2.0; arm64) com.kiloo.subwaysurf/3.46.9"
+
+
+def framing(msg):
+    payload = msg.SerializeToString()
+
+    # gRPC-Web framing
+    body = b"\x00" + len(payload).to_bytes(4, "big") + payload
+
+    return body
 
 
 def auth_register():
@@ -30,21 +34,15 @@ def auth_register():
 
 
 def create_player(authtoken, name):
+    from player_pb2 import PlayerResponse, UpdatePlayerRequest
+
     url = api_url + "/rpc/player.ext.v1.PrivateService/CreatePlayer"
-    msg = CreatePlayerRequest(
+    msg = UpdatePlayerRequest(
         name=name,
-        selected_board="default",
-        selected_board_upgrades="default",
-        selected_character="jake.default",
-        selected_country="de",
-        selected_background="default_background",
-        selected_frame="default_frame",
-        selected_portrait="jake_portrait",
-        stat_total_visited_destinations=0,
-        stat_total_games=0,
     )
-    payload = msg.SerializeToString()
-    body = b"\x00" + len(payload).to_bytes(4, "big") + payload
+
+    body = framing(msg)
+
     headers = {
         "User-Agent": user_agent,
         "grpc-accept-encoding": "identity,gzip",
@@ -64,10 +62,13 @@ def create_player(authtoken, name):
 
 
 def update_player(authtoken, name):
-    character = choose_character()
-    board, upgrades = choose_board()
+    from player_pb2 import PlayerResponse, UpdatePlayerRequest
+
+    character, character_length, outfits_length = choose_character()
+    board, upgrades, board_length, upgrades_length = choose_board()
     portrait, frame, background = choose_cosmetics()
     country = choose_country()
+    achievements = achievements_length()
 
     url = api_url + "/rpc/player.ext.v1.PrivateService/UpdatePlayer"
 
@@ -78,10 +79,12 @@ def update_player(authtoken, name):
         metadata={
             "stat_total_visited_destinations": str(random.randint(1, 80)),
             "stat_total_games": str(random.randint(1, 8000)),
-            "stat_owned_characters": str(random.randint(1, 240)),
-            "stat_owned_characters_outfits": str(random.randint(1, 214)),
-            "stat_owned_boards": str(random.randint(1, 272)),
-            "stat_owned_boards_upgrades": str(random.randint(1, 158)),
+            "stat_owned_characters": str(random.randint(1, character_length)),
+            "stat_owned_characters_outfits": str(random.randint(1, outfits_length)),
+            "stat_owned_boards": str(random.randint(1, board_length)),
+            "stat_owned_boards_upgrades": str(
+                random.randint(1, max(1, upgrades_length))
+            ),
             "selected_portrait": portrait,
             "selected_frame": frame,
             "selected_country": country,
@@ -90,17 +93,17 @@ def update_player(authtoken, name):
             "selected_board_upgrades": upgrades,
             "selected_background": background,
             "highscore_default": str(random.randint(1, 10000)),
-            "stat_achievements": str(random.randint(1, 27)),
+            "stat_achievements": str(random.randint(1, achievements)),
             "stat_total_top_run_medals_bronze": str(random.randint(1, 50)),
             "stat_total_top_run_medals_silver": str(random.randint(1, 50)),
             "stat_total_top_run_medals_gold": str(random.randint(1, 50)),
             "stat_total_top_run_medals_diamond": str(random.randint(1, 50)),
             "stat_total_top_run_medals_champion": str(random.randint(1, 50)),
         },
-    )z
+    )
 
-    payload = msg.SerializeToString()
-    body = b"\x00" + len(payload).to_bytes(4, "big") + payload
+    body = framing(msg)
+
     headers = {
         "User-Agent": user_agent,
         "grpc-accept-encoding": "identity,gzip",
@@ -120,6 +123,8 @@ def update_player(authtoken, name):
 
 
 def update_player_badges(authtoken, name):
+    from player_pb2 import PlayerResponse, UpdatePlayerRequest
+
     length, badges = choose_badges()
 
     url = api_url + "/rpc/player.ext.v1.PrivateService/UpdatePlayer"
@@ -144,8 +149,8 @@ def update_player_badges(authtoken, name):
         metadata=metadata,
     )
 
-    payload = msg.SerializeToString()
-    body = b"\x00" + len(payload).to_bytes(4, "big") + payload
+    body = framing(msg)
+
     headers = {
         "User-Agent": user_agent,
         "grpc-accept-encoding": "identity,gzip",
@@ -164,15 +169,19 @@ def update_player_badges(authtoken, name):
     return resp
 
 
-def get_player_by_tag(playertag: str, authtoken: str):
+def get_player_by_tag(
+    authtoken: str,
+    playertag: str,
+):
+    from player_pb2 import PlayerRequest, PlayerResponse
+
     url = api_url + "/rpc/player.ext.v1.PrivateService/GetPlayerByTag"
-    encoded_playertag = playertag.encode("utf-8")
-    protobuf_payload = (
-        b"\x0a" + len(encoded_playertag).to_bytes(1, "big") + encoded_playertag
+
+    msg = PlayerRequest(
+        player=playertag,
     )
 
-    prefix = b"\x00" + len(protobuf_payload).to_bytes(4, "big")
-    body = prefix + protobuf_payload
+    body = framing(msg)
 
     headers = {
         "User-Agent": user_agent,
@@ -189,7 +198,6 @@ def get_player_by_tag(playertag: str, authtoken: str):
         )
 
     raw = r.content
-
     if len(raw) < 5:
         print("Response too short")
         return False, None
@@ -208,16 +216,16 @@ def get_player_by_tag(playertag: str, authtoken: str):
         return False, None
 
 
-def get_player_by_id(playerid: str):
+def get_player_by_id(authtoken: str, playerid: str):
+    from player_pb2 import PlayerRequest, PlayerResponse
+
     url = api_url + "/rpc/player.ext.v1.PrivateService/GetPlayerById"
 
-    encoded_playerid = playerid.encode("utf-8")
-    protobuf_payload = (
-        b"\x0a" + len(encoded_playerid).to_bytes(1, "big") + encoded_playerid
+    msg = PlayerRequest(
+        player=playeruuid,
     )
 
-    prefix = b"\x00" + len(protobuf_payload).to_bytes(4, "big")
-    body = prefix + protobuf_payload
+    body = framing(msg)
 
     headers = {
         "User-Agent": user_agent,
@@ -248,11 +256,17 @@ def get_player_by_id(playerid: str):
     return True, uuid
 
 
-def send_invite(playeruuid, authtoken):
+def send_invite(authtoken, playeruuid):
+    from player_pb2 import PlayerRequest, SendInviteResponse
+
     url = api_url + "/rpc/friends.ext.v1.PrivateService/SendInvite"
-    encoded = playeruuid.encode("utf-8")
-    payload = b"\x0a" + len(encoded).to_bytes(1, "big") + encoded
-    body = b"\x00" + len(payload).to_bytes(4, "big") + payload
+
+    msg = PlayerRequest(
+        player=playeruuid,
+    )
+
+    body = framing(msg)
+
     headers = {
         "User-Agent": user_agent,
         "grpc-accept-encoding": "identity,gzip",
@@ -262,6 +276,11 @@ def send_invite(playeruuid, authtoken):
     with httpx.Client(http2=True) as client:
         r = client.post(url, headers=headers, content=body)
         r.raise_for_status()
+
+        status = r.headers.get("grpc-status")
+        if status == "8":
+            print("INVITES_THROTTLED/INVITE_QUEUE_FULL")
+            return False
     return True
 
 
@@ -289,12 +308,12 @@ def main(friend_tag: str, amount: int):
             if is_uuid:
                 playeruuid = friend_tag
             else:
-                success, playeruuid = get_player_by_tag(friend_tag, authtoken)
+                success, playeruuid = get_player_by_tag(authtoken, friend_tag)
                 if not success:
                     print(f"Failed to get UUID for tag {friend_tag}")
                     continue
 
-            success = send_invite(playeruuid, authtoken)
+            success = send_invite(authtoken, playeruuid)
 
             created.append(
                 {
@@ -303,7 +322,6 @@ def main(friend_tag: str, amount: int):
                     "created": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
                     "idToken": authtoken,
                     "refreshToken": refresh_token,
-                    "friendInviteSent": success,
                 }
             )
         except Exception as e:

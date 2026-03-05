@@ -4,11 +4,6 @@ from pathlib import Path
 
 import httpx
 from generator import *
-from player_pb2 import (
-    CreatePlayerRequest,
-    UpdatePlayerRequest,
-    PlayerResponse,
-)
 
 api_url = "https://subway.prod.sybo.net"
 user_agent = "grpc-dotnet/2.63.0 (Mono Unity; CLR 4.0.30319.17020; netstandard2.0; arm64) com.kiloo.subwaysurf/3.46.9"
@@ -22,22 +17,16 @@ def auth_register():
         return r.json()
 
 
-def create_player(authtoken, name):
+def create_player(authtoken: str, name: str):
+    from player_pb2 import PlayerResponse, UpdatePlayerRequest
+
     url = api_url + "/rpc/player.ext.v1.PrivateService/CreatePlayer"
-    msg = CreatePlayerRequest(
+    msg = UpdatePlayerRequest(
         name=name,
-        selected_board="default",
-        selected_board_upgrades="default",
-        selected_character="jake.default",
-        selected_country="de",
-        selected_background="default_background",
-        selected_frame="default_frame",
-        selected_portrait="jake_portrait",
-        stat_total_visited_destinations=0,
-        stat_total_games=0,
     )
-    payload = msg.SerializeToString()
-    body = b"\x00" + len(payload).to_bytes(4, "big") + payload
+
+    body = framing(msg)
+
     headers = {
         "User-Agent": user_agent,
         "grpc-accept-encoding": "identity,gzip",
@@ -57,6 +46,8 @@ def create_player(authtoken, name):
 
 
 def update_player(authtoken, name):
+    from player_pb2 import PlayerResponse, UpdatePlayerRequest
+
     character = choose_character()
     board, upgrades = choose_board()
     portrait, frame, background = choose_cosmetics()

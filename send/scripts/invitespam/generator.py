@@ -1,8 +1,8 @@
 import json
-import random
 import os
-import requests
+import random
 
+import httpx
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -16,11 +16,13 @@ def generate_name():
 
 
 def choose_board():
-    with open(os.path.join(BASE_DIR, "boards_data.json")) as f:
-        BOARDS = json.load(f)
-    board = random.choice(BOARDS)
+    with open(os.path.join(BASE_DIR, "boards_data.json"), "r") as f:
+        boards = json.load(f)
+
+    board = random.choice(boards)
     board_id = board["id"]
-    upgrades = board.get("upgrades", [])
+
+    upgrades = board.get("upgrades") or []
 
     if not upgrades:
         upgrade_str = "default"
@@ -32,18 +34,27 @@ def choose_board():
             else "default"
         )
 
-    return board_id, upgrade_str
+    total_boards = len(boards)
+    upgrades_length = len(upgrades)
+
+    return board_id, upgrade_str, total_boards, upgrades_length
 
 
 def choose_character():
-    with open(os.path.join(BASE_DIR, "characters_data.json")) as f:
-        CHARACTERS = json.load(f)
-    character = random.choice(CHARACTERS)
+    with open(os.path.join(BASE_DIR, "characters_data.json"), "r") as f:
+        characters = json.load(f)
+
+    character = random.choice(characters)
     char_id = character["id"]
-    outfits = character.get("outfits", [])
+    outfits = character["outfits"] or []
+
+    total_outfits = sum(len(c.get("outfits", [])) for c in characters)
 
     outfit_id = random.choice(outfits)["id"] if outfits else "default"
-    return f"{char_id}.{outfit_id}"
+
+    total_characters = len(characters)
+
+    return f"{char_id}.{outfit_id}", total_characters, total_outfits
 
 
 def choose_cosmetics():
@@ -81,6 +92,12 @@ def choose_badges():
     return length, badges_dict
 
 
+def achievements_length():
+    with open(os.path.join(BASE_DIR, "achievements_data.json"), "r") as f:
+        data = json.load(f)
+    return len(data)
+
+
 FILES = [
     "boards_data.json",
     "characters_data.json",
@@ -92,18 +109,27 @@ BASE_URL = "https://github.com/HerrErde/subway-source/releases/latest/download/"
 
 
 def download_missing_files():
-    for file in FILES:
-        file_path = os.path.join(BASE_DIR, file)
-        if not os.path.exists(file_path):
-            url = f"{BASE_URL}{file}"
-            print(f"Downloading {file} from {url}...")
-            response = requests.get(url)
-            if response.status_code == 200:
-                with open(file_path, "wb") as f:
-                    f.write(response.content)
-                print(f"Saved {file} to {file_path}")
-            else:
-                print(f"Failed to download {file}: HTTP {response.status_code}")
+    with httpx.Client(timeout=30.0, follow_redirects=True) as client:
+        for file in FILES:
+            file_path = os.path.join(BASE_DIR, file)
+
+            if not os.path.exists(file_path):
+                url = f"{BASE_URL}{file}"
+                print(f"Downloading {file}...")
+
+                try:
+                    response = client.get(url)
+                    response.raise_for_status()
+
+                    with open(file_path, "wb") as f:
+                        f.write(response.content)
+
+                    print(f"Saved {file} to {file_path}")
+
+                except httpx.HTTPStatusError as e:
+                    print(f"Failed to download {file}: HTTP {e.response.status_code}")
+                except httpx.RequestError as e:
+                    print(f"Request error while downloading {file}: {e}")
 
 
 if __name__ == "__main__":
