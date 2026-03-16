@@ -1,0 +1,112 @@
+syntax = "proto3";
+
+import "google/protobuf/timestamp.proto";
+import "player.proto";
+
+package friends.ext.v1;
+
+service PrivateService {
+  rpc GetFriends (GetFriendsRequest) returns (GetFriendsResponse);
+  rpc GetInvites (GetInvitesRequest) returns (GetInvitesResponse);
+  rpc GetFriendsAndInvites (GetFriendAndInvitesRequest) returns (GetFriendAndInvitesResponse);
+  rpc SendInvite (SendInviteRequest) returns (SendInviteResponse);
+  rpc AcceptInvite (AcceptInviteRequest) returns (AcceptInviteResponse);
+  rpc CancelInvite (CancelInviteRequest) returns (CancelInviteResponse);
+  rpc DeclineInvite (DeclineInviteRequest) returns (DeclineInviteResponse);
+  rpc RemoveFriend (RemoveFriendRequest) returns (RemoveFriendResponse);
+  rpc GetRelationship (GetRelationshipRequest) returns (GetRelationshipResponse);
+}
+
+message SendInviteRequest {
+  string userId = 1;
+}
+
+message CancelInviteRequest {
+  string inviteId = 1;
+}
+message CancelInviteResponse {}
+
+message DeclineInviteRequest {
+  string inviteId = 1;
+}
+message DeclineInviteResponse {}
+
+message RemoveFriendRequest {
+  string userId = 1;
+}
+
+message RemoveFriendResponse {}
+
+message AcceptInviteRequest {
+  string inviteId = 1;
+}
+
+message AcceptInviteResponse {}
+
+message GetRelationshipRequest {
+  string userId = 1;
+}
+
+message SendInviteResponse {
+  Invite invite = 1;
+}
+
+message Friend {
+  string userId = 1;
+  player.ext.v1.Player player = 2;
+}
+
+message Invite {
+  string id = 1;
+  Friend receiver = 2;
+  Friend sender = 3;
+  google.protobuf.Timestamp createdAt = 4;
+}
+
+message FriendSummary {
+  uint64 limit = 1;
+  uint64 friendCount = 2;
+  uint64 pendingSentInviteCount = 3;
+  uint64 pendingReceivedInviteCount = 4;
+  uint64 pendingReceivedInviteLimit = 5;
+}
+
+message GetFriendsRequest {}
+
+message GetFriendsResponse {
+  repeated Friend friends = 1;
+  FriendSummary summary = 2;
+}
+
+message GetInvitesRequest {}
+
+message GetInvitesResponse {
+  repeated Invite received = 1;
+  repeated Invite sent = 2;
+  FriendSummary summary = 3;
+}
+
+message GetFriendAndInvitesRequest {}
+
+message GetFriendAndInvitesResponse {
+  repeated Friend friends = 1;
+  repeated Invite invitesReceived = 2;
+  repeated Invite invitesSent = 3;
+  FriendSummary summary = 4;
+}
+
+message Relationship {
+  enum FriendStatus {
+    FRIEND_STATUS_UNSPECIFIED = 0;
+    FRIEND_STATUS_FRIENDS = 1;
+    FRIEND_STATUS_PENDING_INVITE_TO_ME = 2;
+    FRIEND_STATUS_PENDING_INVITE_FROM_ME = 3;
+    FRIEND_STATUS_NOT_FRIENDS = 4;
+  }
+  FriendStatus friendStatus = 1;
+  string pendingInviteId = 2;
+}
+
+message GetRelationshipResponse {
+  Relationship relationship = 1;
+}

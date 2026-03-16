@@ -1,0 +1,104 @@
+syntax = "proto3";
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/field_mask.proto";
+
+package player.ext.v1;
+
+service PrivateService {
+  rpc GetPlayerByTag (GetPlayerByTagRequest) returns (GetPlayerByTagResponse);
+  rpc GetPlayerById (GetPlayerByIdRequest) returns (GetPlayerByIdResponse);
+  rpc GetPlayer (GetPlayerRequest) returns (GetPlayerResponse);
+  rpc CreatePlayer (CreatePlayerRequest) returns (CreatePlayerResponse);
+  rpc UpdatePlayer (UpdatePlayerRequest) returns (UpdatePlayerResponse);
+  rpc Match (MatchRequest) returns (MatchResponse);
+  rpc GetConfig (GetConfigRequest) returns (GetConfigResponse);
+}
+
+message GetPlayerByTagRequest {
+  string tag = 1;
+}
+
+message GetPlayerByTagResponse {
+  Player player = 1;
+}
+
+message GetPlayerByIdRequest {
+  string uid = 1;
+}
+
+message GetPlayerByIdResponse {
+  Player player = 1;
+}
+
+message GetPlayerRequest {}
+
+message GetPlayerResponse {
+  Player player = 1;
+}
+
+message CreatePlayerRequest {
+  string name = 1;
+  uint32 level = 2;
+  uint64 highscore = 3;
+  map<string, string> metadata = 4;
+  Player player = 5;
+}
+
+message CreatePlayerResponse {
+  Player player = 1;
+}
+
+message UpdatePlayerRequest {
+  string name = 1;
+  uint32 level = 2;
+  uint64 highscore = 3;
+  map<string, string> metadata = 4;
+  google.protobuf.FieldMask updateMask = 5;
+  Player player = 6;
+}
+
+message UpdatePlayerResponse {
+  Player player = 1;
+}
+
+message MatchRequest {}
+
+message MatchResponse {
+  repeated Player players = 1;
+}
+
+message Player {
+  string name = 1;
+  string tag = 2;
+  uint32 level = 3;
+  uint64 highscore = 4;
+  map<string, string> metadata = 5;
+  google.protobuf.Timestamp createdAt = 6;
+  google.protobuf.Timestamp updatedAt = 7;
+  google.protobuf.Timestamp renamedAt = 8;
+  string uid = 9;
+  google.protobuf.Timestamp renamebleAt = 10;
+}
+
+message GetConfigRequest {}
+
+message GetConfigResponse {
+  message Config {
+    message NameRequirements {
+      message CharacterRange {
+        uint32 from = 1;
+        uint32 to = 2;
+      }
+
+      string minLen = 1;
+      string maxLen = 2;
+      string pattern = 3;
+      repeated CharacterRange characterSet = 4;
+    }
+
+    NameRequirements nameRequirements = 6;
+  }
+
+  Config config = 1;
+}

@@ -1,11 +1,12 @@
-import json
 import random
 import re
 from datetime import UTC, datetime
-from pathlib import Path
 
 import httpx
 from generator import *
+
+from friends_pb2 import *
+from player_pb2 import *
 
 uuid_pattern = re.compile(
     r"\b[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}\b"
@@ -34,10 +35,8 @@ def auth_register():
 
 
 def create_player(authtoken, name):
-    from player_pb2 import PlayerResponse, UpdatePlayerRequest
-
     url = api_url + "/rpc/player.ext.v1.PrivateService/CreatePlayer"
-    msg = UpdatePlayerRequest(
+    msg = CreatePlayerRequest(
         name=name,
     )
 
@@ -56,14 +55,12 @@ def create_player(authtoken, name):
         raise RuntimeError("CreatePlayer response too short")
     msg_len = int.from_bytes(raw[1:5], "big")
     grpc_payload = raw[5 : 5 + msg_len]
-    resp = PlayerResponse()
+    resp = CreatePlayerResponse()
     resp.ParseFromString(grpc_payload)
     return resp
 
 
 def update_player(authtoken, name):
-    from player_pb2 import PlayerResponse, UpdatePlayerRequest
-
     character, character_length, outfits_length = choose_character()
     board, upgrades, board_length, upgrades_length = choose_board()
     portrait, frame, background = choose_cosmetics()
@@ -117,14 +114,12 @@ def update_player(authtoken, name):
         raise RuntimeError("CreatePlayer response too short")
     msg_len = int.from_bytes(raw[1:5], "big")
     grpc_payload = raw[5 : 5 + msg_len]
-    resp = PlayerResponse()
+    resp = UpdatePlayerResponse()
     resp.ParseFromString(grpc_payload)
     return resp
 
 
 def update_player_badges(authtoken, name):
-    from player_pb2 import PlayerResponse, UpdatePlayerRequest
-
     length, badges = choose_badges()
 
     url = api_url + "/rpc/player.ext.v1.PrivateService/UpdatePlayer"
@@ -164,7 +159,7 @@ def update_player_badges(authtoken, name):
         raise RuntimeError("CreatePlayer response too short")
     msg_len = int.from_bytes(raw[1:5], "big")
     grpc_payload = raw[5 : 5 + msg_len]
-    resp = PlayerResponse()
+    resp = UpdatePlayerResponse()
     resp.ParseFromString(grpc_payload)
     return resp
 
@@ -173,12 +168,10 @@ def get_player_by_tag(
     authtoken: str,
     playertag: str,
 ):
-    from player_pb2 import PlayerRequest, PlayerResponse
-
     url = api_url + "/rpc/player.ext.v1.PrivateService/GetPlayerByTag"
 
-    msg = PlayerRequest(
-        player=playertag,
+    msg = GetPlayerByTagRequest(
+        tag=playertag,
     )
 
     body = framing(msg)
@@ -206,10 +199,10 @@ def get_player_by_tag(
     grpc_payload = raw[5 : 5 + msg_len]
 
     try:
-        resp = PlayerResponse()
+        resp = GetPlayerByTagResponse()
         resp.ParseFromString(grpc_payload)
-        uuid = resp.user_data.uuid
-        return True, uuid
+        uid = resp.player.uid
+        return True, uid
     except Exception as e:
         print("Failed to parse response:", e)
         print("gRPC payload (hex):", grpc_payload.hex())
@@ -217,12 +210,10 @@ def get_player_by_tag(
 
 
 def get_player_by_id(authtoken: str, playerid: str):
-    from player_pb2 import PlayerRequest, PlayerResponse
-
     url = api_url + "/rpc/player.ext.v1.PrivateService/GetPlayerById"
 
-    msg = PlayerRequest(
-        player=playeruuid,
+    msg = GetPlayerByIdRequest(
+        uid=playeruuid,
     )
 
     body = framing(msg)
@@ -250,19 +241,17 @@ def get_player_by_id(authtoken: str, playerid: str):
     msg_len = int.from_bytes(raw[1:5], "big")
     grpc_payload = raw[5 : 5 + msg_len]
 
-    resp = PlayerResponse()
+    resp = GetPlayerByIdResponse()
     resp.ParseFromString(grpc_payload)
-    uuid = resp.user_data.uuid
-    return True, uuid
+    uid = resp.player.uid
+    return True, uid
 
 
 def send_invite(authtoken, playeruuid):
-    from player_pb2 import PlayerRequest, SendInviteResponse
-
     url = api_url + "/rpc/friends.ext.v1.PrivateService/SendInvite"
 
-    msg = PlayerRequest(
-        player=playeruuid,
+    msg = SendInviteRequest(
+        userId=playeruuid,
     )
 
     body = framing(msg)
@@ -301,7 +290,7 @@ def main(friend_tag: str, amount: int):
             authtoken = auth.get("idToken")
             refresh_token = auth.get("refreshToken")
 
-            player_resp = create_player(authtoken, name)
+            create_player(authtoken, name)
             update_player(authtoken, name)
             update_player_badges(authtoken, name)
 

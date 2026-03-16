@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+import "google/protobuf/timestamp.proto";
+
+package wallet.ext.v1;
+
+service PrivateService {
+  rpc GetWallet (GetWalletRequest) returns (GetWalletResponse);
+}
+
+message GetWalletRequest {}
+
+message GetWalletResponse {
+  message Wallet {
+    map<string, uint64> items =  1;
+    google.protobuf.Timestamp updatedAt = 2;
+  }
+  Wallet wallet = 1;
+}

@@ -2,6 +2,7 @@ import os
 
 import httpx
 from dotenv import load_dotenv
+from friends_pb2 import *
 
 load_dotenv()
 identityToken = str(os.environ.get("IDENTITYTOKEN", ""))
@@ -27,10 +28,9 @@ def framing(msg):
 
 
 def get_invites():
-    from player_pb2 import Empty, GetInvitesResponse
-
     url = f"{api_url}/rpc/friends.ext.v1.PrivateService/GetInvites"
-    msg = Empty()
+
+    msg = GetInvitesRequest()
 
     body = framing(msg)
 
@@ -63,12 +63,10 @@ def get_invites():
 
 
 def accept_invite(action_uuid: str):
-    from player_pb2 import PlayerRequest, Empty
-
     url = f"{api_url}/rpc/friends.ext.v1.PrivateService/AcceptInvite"
 
-    msg = PlayerRequest(
-        player=action_uuid,
+    msg = AcceptInviteRequest(
+        inviteId=action_uuid,
     )
 
     body = framing(msg)
@@ -89,7 +87,7 @@ def accept_invite(action_uuid: str):
     grpc_payload = raw[5 : 5 + msg_len]
 
     try:
-        resp = Empty()
+        resp = AcceptInviteRequest()
         resp.ParseFromString(grpc_payload)
         print(f"✅ Accepted invite: {action_uuid}")
     except Exception as e:
@@ -106,7 +104,7 @@ def main():
         action_uuid = getattr(invite, "action_uuid", None)
         if action_uuid:
             print(
-                f"Processing invite from: {invite.user_info.user_data.name} (UUID: {action_uuid})"
+                f"Processing invite from: {invite.user_info.player.name} (UUID: {action_uuid})"
             )
             accept_invite(action_uuid)
         else:

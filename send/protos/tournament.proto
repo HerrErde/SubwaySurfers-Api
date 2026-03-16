@@ -1,0 +1,144 @@
+syntax = "proto3";
+
+import "google/protobuf/timestamp.proto";
+
+package tournament.ext.v2;
+
+service PrivateService {
+  rpc GetTournamentInfo (GetTournamentInfoRequest) returns (GetTournamentInfoResponse);
+  rpc JoinTournament (JoinTournamentRequest) returns (JoinTournamentResponse);
+  rpc SubmitScore (SubmitScoreRequest) returns (SubmitScoreResponse);
+  rpc GetScores (GetScoresRequest) returns (GetTournamentInfoResponse);
+  rpc GetResults (GetResultsRequest) returns (GetResultsResponse);
+  rpc ClaimRewards (ClaimRewardsRequest) returns (ClaimRewardsResponse);
+}
+
+message TournamentInput {
+  string id = 1;
+}
+
+message TournamentOutput {
+  string name = 1;
+}
+
+message PoolInput {
+  string partitionKey = 1;
+  string countryCodePartitionKey = 2;
+}
+
+message SessionInfo {
+    google.protobuf.Timestamp startsAt = 1;
+    google.protobuf.Timestamp endsAt = 2;
+}
+
+message GroupInfo {
+  message ScoreOutput {
+    string playerId = 1;
+    int64 score = 2;
+    int32 rank = 3;
+  }
+  ScoreOutput myScore = 1;
+  repeated ScoreOutput scores = 2;
+}
+
+message ScheduleInfo {
+  google.protobuf.Timestamp startsAt = 1;
+  google.protobuf.Timestamp endsAt = 2;
+}
+
+message SubmissionInfo {
+  string uuid = 1;
+  uint64 minScoreValue = 2;
+}
+
+message BracketInfo {
+  enum BracketMetric {
+    BRACKET_METRIC_UNSPECIFIED = 0;
+    BRACKET_METRIC_RANK = 1;
+    BRACKET_METRIC_SCORE = 2;
+  }
+
+  message RewardItem {
+    string id = 1;
+    uint64 amount = 2;
+    string type = 3;
+  }
+
+  string id = 1;
+  BracketMetric metric = 2;
+  uint64 thresholdValue = 3;
+  repeated RewardItem items = 4;
+}
+
+message Duration {
+  uint64 seconds = 1;
+  uint64 nanos = 2;
+}
+
+message ScoreInput {
+  uint64 value = 1;
+  Duration gameplayDuration = 2;
+  //google.protobuf.Timestamp gameplayDuration = 2;
+  google.protobuf.Timestamp scoredAt = 3;
+  map<string, string> metadata = 4;
+}
+
+message GetTournamentInfoRequest {
+  TournamentInput tournament = 1;
+  PoolInput pool = 2;
+}
+
+message GetTournamentInfoResponse {
+  TournamentOutput tournament = 1;
+  ScheduleInfo schedule = 2;
+  SubmissionInfo submission = 3;
+  repeated BracketInfo brackets = 4;
+}
+
+message JoinTournamentRequest {
+  TournamentInput tournament = 1;
+  PoolInput pool = 2;
+}
+
+message JoinTournamentResponse {
+  TournamentOutput tournament = 1;
+  SessionInfo session = 2;
+  GroupInfo group = 3;
+  repeated BracketInfo brackets = 4;
+}
+
+message SubmitScoreRequest {
+  TournamentInput tournament = 1;
+  ScoreInput score = 2;
+  PoolInput pool = 3;
+}
+
+message GetScoresRequest {
+  TournamentInput tournament = 1;
+}
+
+message SubmitScoreResponse {}
+
+message GetScoresResponse {
+  TournamentOutput tournament = 1;
+  SessionInfo session = 2;
+  GroupInfo group = 3;
+  repeated BracketInfo brackets = 4;
+}
+
+message GetResultsRequest {
+  TournamentInput tournament = 1;
+}
+
+message GetResultsResponse {
+  TournamentOutput tournament = 1;
+  SessionInfo session = 2;
+  GroupInfo group = 3;
+  repeated BracketInfo brackets = 4;
+}
+
+message ClaimRewardsRequest {
+  TournamentInput tournament = 1;
+}
+
+message ClaimRewardsResponse {}

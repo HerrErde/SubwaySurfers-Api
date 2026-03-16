@@ -1,9 +1,8 @@
-import json
 import random
-from pathlib import Path
 
 import httpx
 from generator import *
+from player_pb2 import *
 
 api_url = "https://subway.prod.sybo.net"
 user_agent = "grpc-dotnet/2.63.0 (Mono Unity; CLR 4.0.30319.17020; netstandard2.0; arm64) com.kiloo.subwaysurf/3.46.9"
@@ -18,10 +17,8 @@ def auth_register():
 
 
 def create_player(authtoken: str, name: str):
-    from player_pb2 import PlayerResponse, UpdatePlayerRequest
-
     url = api_url + "/rpc/player.ext.v1.PrivateService/CreatePlayer"
-    msg = UpdatePlayerRequest(
+    msg = CreatePlayerRequest(
         name=name,
     )
 
@@ -40,14 +37,12 @@ def create_player(authtoken: str, name: str):
         raise RuntimeError("CreatePlayer response too short")
     msg_len = int.from_bytes(raw[1:5], "big")
     grpc_payload = raw[5 : 5 + msg_len]
-    resp = PlayerResponse()
+    resp = CreatePlayerResponse()
     resp.ParseFromString(grpc_payload)
     return resp
 
 
 def update_player(authtoken, name):
-    from player_pb2 import PlayerResponse, UpdatePlayerRequest
-
     character = choose_character()
     board, upgrades = choose_board()
     portrait, frame, background = choose_cosmetics()
@@ -95,10 +90,10 @@ def update_player(authtoken, name):
         r = client.post(url, headers=headers, content=body)
     raw = r.content
     if len(raw) < 5:
-        raise RuntimeError("CreatePlayer response too short")
+        raise RuntimeError("UpdatePlayer response too short")
     msg_len = int.from_bytes(raw[1:5], "big")
     grpc_payload = raw[5 : 5 + msg_len]
-    resp = PlayerResponse()
+    resp = UpdatePlayerResponse()
     resp.ParseFromString(grpc_payload)
     return resp
 
@@ -140,23 +135,20 @@ def update_player_badges(authtoken, name):
         r = client.post(url, headers=headers, content=body)
     raw = r.content
     if len(raw) < 5:
-        raise RuntimeError("CreatePlayer response too short")
+        raise RuntimeError("UpdatePlayer response too short")
     msg_len = int.from_bytes(raw[1:5], "big")
     grpc_payload = raw[5 : 5 + msg_len]
-    resp = PlayerResponse()
+    resp = UpdatePlayerResponse()
     resp.ParseFromString(grpc_payload)
     return resp
 
 
 def get_player_by_tag(playertag: str, authtoken: str):
     url = api_url + "/rpc/player.ext.v1.PrivateService/GetPlayerByTag"
-    encoded_playertag = playertag.encode("utf-8")
-    protobuf_payload = (
-        b"\x0a" + len(encoded_playertag).to_bytes(1, "big") + encoded_playertag
+    msg = GetPlayerByTagRequest(
+        tag=playertag,
     )
-
-    prefix = b"\x00" + len(protobuf_payload).to_bytes(4, "big")
-    body = prefix + protobuf_payload
+    body = framing(msg)
 
     headers = {
         "User-Agent": user_agent,
@@ -182,10 +174,10 @@ def get_player_by_tag(playertag: str, authtoken: str):
     grpc_payload = raw[5 : 5 + msg_len]
 
     try:
-        resp = PlayerResponse()
+        resp = GetPlayerByTagResponse()
         resp.ParseFromString(grpc_payload)
-        uuid = resp.user_data.uuid
-        return True, uuid
+        uid = resp.player.uid
+        return True, uid
     except Exception as e:
         print("Failed to parse response:", e)
         print("gRPC payload (hex):", grpc_payload.hex())

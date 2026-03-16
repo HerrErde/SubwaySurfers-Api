@@ -23,12 +23,20 @@ You can interact with the internal api that is used by the SubwaySurfers game ap
 ```bash
 pip install -r requirements.txt
 cd send
-protoc --python_out=. player.proto
+protoc -I=protos --python_out=. protos\*.proto
+python -m grpc_tools.protoc -I=protos --python_out=. --grpc_python_out=. protos\*.proto
 ```
 
 ```bash
-python sendrpc.py
 python sendjson.py
+```
+
+```bash
+python player.py
+python friends.py
+python energy.py
+python tournament.py
+python wallet.py
 ```
 
 ## How to Use
@@ -70,8 +78,8 @@ python sendjson.py
 
 ## API Documentation
 
-- [RPC Docs](./grpc_docs.md) – gRPC endpoints, request/response formats, examples
-- [JSON Docs](./json_docs.md) – JSON endpoints, request/response formats, examples
+- [RPC Docs](./grpc_docs.md) – gRPC endpoints
+- [JSON Docs](./json_docs.md) – JSON endpoints
 
 ---
 
@@ -84,8 +92,9 @@ If you want to decode the requests yourself, root your phone, use an emulator, o
 
 Then use **PCAPdroid** to capture traffic and export it as a PCAP file. \
 Open the file in **Wireshark**, locate the gRPC request (filter by searching "gprc" or "json"), and open the Packet window. \
-Under the **Protocol Buffers** section you will see a **Message: <UNKNOWN\>**, right click and copy as Hex Stream. Then you can decode the Protobuf in somehing like [protobuf-decoder](https://good.tools/protobuf-decoder).
-
+Under the **Protocol Buffers** section you will see **Message: <UNKNOWN\>**. Right-click and copy as Hex Stream. Then you can decode the Protobuf in something like [protobuf-decoder](https://good.tools/protobuf-decoder). \
 The same can be done with the response. \
 Search for a response that says (GRPC-Web) (application/grpc-web). \
 Sometimes it can have a (application/json) header.
+
+To build the proto more exact, you can also dump the il2cpp and rebuild from the Request and Response classes like `SYBO.Social.Players.Grpc`. If it has multiple fields inside of it, follow it through and rebuild each one.

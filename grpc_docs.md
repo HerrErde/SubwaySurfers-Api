@@ -46,12 +46,14 @@
       - [JoinTournament](#jointournament)
       - [SubmitScore](#submitscore)
       - [GetScores](#getscores)
+      - [GetResults](#getresults)
+      - [ClaimRewards](#claimrewards)
 
 </details>
 
 ## General Notes
 
-All knowledge is for versions `3.52.2`
+All knowledge is for versions `3.60.0`
 
 > [!WARNING]
 > Changes are expected to happen
@@ -85,7 +87,7 @@ Make sure to keep your identityToken refreshed and the everywhere the same.
   <summary>PlayerResponse</summary>
 
 ```json
-user_data {
+player {
   name: "StylingDino"
   tag: "BY1BJH84CVHHIX"
   level: 1
@@ -170,42 +172,42 @@ user_data {
     key: "highscore_default"
     value: "1"
   }
-  created_at {
-    sec: 1748942697
-    nsec: 178738000
+  createdAt {
+    seconds: 1748942697
+    nanos: 178738000
   }
-  updated_at {
-    sec: 1748945058
-    nsec: 90790000
+  updatedAt {
+    seconds: 1748945058
+    nanos: 90790000
   }
-  renamed_at {
-    sec: 1748945058
-    nsec: 89156000
+  renamedAt {
+    seconds: 1748945058
+    nanos: 89156000
   }
-  uuid: "0197351b-ae06-7a3f-8576-0e3d5b95a280"
-  renameble_at {
-    sec: 1749549858
-    nsec: 89156000
+  uid: "0197351b-ae06-7a3f-8576-0e3d5b95a280"
+  renamebleAt {
+    seconds: 1749549858
+    nanos: 89156000
   }
 }
 ```
 
 </details>
 
-<details id="invite_quota">
-  <summary>Invite Quota</summary>
+<details id="friend_summary">
+  <summary>Friend Summary</summary>
 
 ```json
-quota  {
-  max_friends: 100
-  friend_count: 1
-  received_invite_count: 1
-  send_invite_count: 1
-  max_invites: 50
+summary  {
+  limit: 100
+  friendCount: 1
+  pendingSentInviteCount: 1
+  pendingReceivedInviteCount: 1
+  pendingReceivedInviteLimit: 50
 }
 ```
 
-The Amount of the `max_invites` was increased from 10 to 50. (2025-12-20)
+The Amount of the `pendingReceivedInviteLimit` was increased from 10 to 50. (2025-12-20)
 
 </details>
 
@@ -214,184 +216,67 @@ The Amount of the `max_invites` was increased from 10 to 50. (2025-12-20)
 
 ```json
 tournament {
-  tournament: "surfers_league_s114"
+  name: "top_run"
 }
-tournament_time {
-  start {
-    time: 1771804800
+schedule {
+  startsAt {
+    seconds: 1773039600
   }
-  end {
-    time: 1773014400
+  endsAt {
+    seconds: 1773644400
   }
 }
-players {
-  self {
-    uuid: "019c343a-32ec-7000-ab78-de96582fa6bc"
-    position: 25
-    trophies: 80
-    user_data {
-      name: "RunningSindri"
-      tag: "PDADHMHWA9SSLT"
-      level: 39
-      highscore: 263924
-      metadata {
-        key: "stat_total_visited_destinations"
-        value: "3"
-      }
-      metadata {
-        key: "stat_total_top_run_medals_silver"
-        value: "0"
-      }
-      metadata {
-        key: "stat_total_top_run_medals_gold"
-        value: "0"
-      }
-      metadata {
-        key: "stat_total_top_run_medals_diamond"
-        value: "0"
-      }
-      metadata {
-        key: "stat_total_top_run_medals_champion"
-        value: "0"
-      }
-      metadata {
-        key: "stat_total_top_run_medals_bronze"
-        value: "2"
-      }
-      metadata {
-        key: "stat_total_games"
-        value: "7"
-      }
-      metadata {
-        key: "stat_owned_characters"
-        value: "268"
-      }
-      metadata {
-        key: "stat_owned_characters_outfits"
-        value: "212"
-      }
-      metadata {
-        key: "stat_owned_boards"
-        value: "309"
-      }
-      metadata {
-        key: "stat_owned_boards_upgrades"
-        value: "197"
-      }
-      metadata {
-        key: "stat_achievements"
-        value: "40"
-      }
-      metadata {
-        key: "selected_portrait"
-        value: "jake_portrait"
-      }
-      metadata {
-        key: "selected_frame"
-        value: "default_frame"
-      }
-      metadata {
-        key: "selected_country"
-        value: "de"
-      }
-      metadata {
-        key: "selected_character"
-        value: "jake.default"
-      }
-      metadata {
-        key: "selected_board"
-        value: "default"
-      }
-      metadata {
-        key: "selected_board_upgrades"
-        value: ""
-      }
-      metadata {
-        key: "selected_background"
-        value: "default_background"
-      }
-      metadata {
-        key: "highscore_default"
-        value: "2147383647"
-      }
-      metadata {
-        key: "equipped_badge_tier_4"
-        value: "4"
-      }
-      metadata {
-        key: "equipped_badge_tier_3"
-        value: "4"
-      }
-      metadata {
-        key: "equipped_badge_tier_2"
-        value: "4"
-      }
-      metadata {
-        key: "equipped_badge_tier_1"
-        value: "4"
-      }
-      metadata {
-        key: "equipped_badge_4"
-        value: "achievement_29"
-      }
-      metadata {
-        key: "equipped_badge_3"
-        value: "achievement_32"
-      }
-      metadata {
-        key: "equipped_badge_2"
-        value: "achievement_33"
-      }
-      metadata {
-        key: "equipped_badge_1"
-        value: "achievement_34"
-      }
-      createdAt {
-        sec: 1770916633
-        nsec: 40647000
-      }
-      updatedAt {
-        sec: 1772645068
-        nsec: 859810000
-      }
-      uuid: "019c343a-32ec-7000-ab78-de96582fa6bc"
-    }
-  }
-  opponents {
-    uuid: "019b92e6-9e37-76c1-a6b9-f4aa61be56fa"
-    position: 1
-    trophies: 1581
-    user_data {
-      name: "HoveringGeorge"
-      tag: "INWYH87EG1MDU4"
-      level: 30
-      highscore: 3114335
-      metadata {
-        key: "stat_total_visited_destinations"
-        value: "11"
-      }
-      (truncated metadata)
-      createdAt {
-        sec: 1769012926
-        nsec: 989466000
-      }
-      updatedAt {
-        sec: 1772647660
-        nsec: 481621000
-      }
-      uuid: "019b92e6-9e37-76c1-a6b9-f4aa61be56fa"
-    }
-  }
-  (truncated x49)
-items {
-  rank: "champion"
-  value2: 1
-  amount: 1
+submission {
 }
-items {
-  rank: "runner_up"
-  value2: 1
-  amount: 999
+brackets {
+  id: "champion"
+  metric: BRACKET_METRIC_RANK
+  thresholdValue: 1
+  items {
+    id: "Coins"
+    amount: 15000
+    type: "Currency"
+  }
+}
+brackets {
+  id: "diamond"
+  metric: BRACKET_METRIC_SCORE
+  thresholdValue: 5560887
+  items {
+    id: "Coins"
+    amount: 10000
+    type: "Currency"
+  }
+}
+brackets {
+  id: "gold"
+  metric: BRACKET_METRIC_SCORE
+  thresholdValue: 2937388
+  items {
+    id: "Coins"
+    amount: 5000
+    type: "Currency"
+  }
+}
+brackets {
+  id: "silver"
+  metric: BRACKET_METRIC_SCORE
+  thresholdValue: 1563558
+  items {
+    id: "Coins"
+    amount: 3000
+    type: "Currency"
+  }
+}
+brackets {
+  id: "bronze"
+  metric: BRACKET_METRIC_SCORE
+  thresholdValue: 572058
+  items {
+    id: "Coins"
+    amount: 2000
+    type: "Currency"
+  }
 }
 ```
 
@@ -471,8 +356,10 @@ refresh token
 - Sample request (2025-12-20): \
   POST /rpc/player.ext.v1.PrivateService/CreatePlayer \
   Authorization: `Bearer <identityToken>` \
-  msg: PlayerRequest \
-  resp: PlayerResponse
+  msg: CreatePlayerRequest \
+  resp: CreatePlayerResponse
+
+[player.py](./send/player.py#L109)
 
 [Player fields](#player_fields)
 
@@ -483,8 +370,10 @@ refresh token
 - Sample request (2025-12-20): \
   POST /rpc/player.ext.v1.PrivateService/UpdatePlayer \
   Authorization: `Bearer <identityToken>` \
-  msg: PlayerRequest \
-  resp: PlayerResponse
+  msg: UpdatePlayerRequest \
+  resp: UpdatePlayerResponse
+
+[player.py](./send/player.py#L168)
 
 Update fields
 
@@ -728,15 +617,17 @@ Additionally there is a error where it is not possible to clear the badges, the 
   POST /rpc/player.ext.v1.PrivateService/GetPlayer \
   Authorization: `Bearer <identityToken>` \
   msg: Empty \
-  resp: PlayerResponse
+  resp: GetPlayerResponse
+
+[player.py](./send/player.py#L77)
 
 This will get data of the own player \
-It will just return the `PlayerResponse` body
+It will just return the `GetPlayerResponse` body
 
 The fields do not show up directly after generating the Player \
 All metadata fields will not exist until they are set with UpdatePlayer
 
-Additionally, the `updated_at`, `name_change_expires_at` and`name_changed_at` only show when the name is changed from the name the player was created with to a new one.
+Additionally, the `updatedAt`, `name_change_expiresAt` and`name_changedAt` only show when the name is changed from the name the player was created with to a new one.
 
 #### Get Player by Tag
 
@@ -745,11 +636,11 @@ Additionally, the `updated_at`, `name_change_expires_at` and`name_changed_at` on
 - Sample request (2025-12-21): \
   POST /rpc/player.ext.v1.PrivateService/GetPlayerByTag
   Authorization: `Bearer <identityToken>` \
-  msg: PlayerRequest \
-  resp: PlayerResponse
+  msg: GetPlayerByTagRequest \
+  resp: GetPlayerByTagResponse
 
 This gets a player by their invite Tag \
-It returns the `PlayerResponse` body
+It returns the `GetPlayerByTagResponse` body
 
 #### Get Player by Id
 
@@ -758,14 +649,14 @@ It returns the `PlayerResponse` body
 - Sample request (2025-12-21): \
   POST /rpc/player.ext.v1.PrivateService/GetPlayerById \
   Authorization: `Bearer <identityToken>` \
-  msg: PlayerRequest \
-  resp: PlayerResponse
+  msg: GetPlayerByIdRequest \
+  resp: GetPlayerByIdResponse
 
 This gets a player by their uuid \
-It returns the `PlayerResponse` body
+It returns the `GetPlayerByIdResponse` body
 
 to get the data from a player via their uuid
-you need first the uuid of the player which you can get via the tag (invite id) or your own from the auth/subway-prod/identity file, the `id` field
+you need first the uuid of the player which you can get via the tag (invite id) or your own from the `auth/subway-prod/identity` file, the `id` field
 
 It is not possible to get the data via a `action_uuid`, it will result in an error
 
@@ -777,10 +668,10 @@ It is not possible to get the data via a `action_uuid`, it will result in an err
   POST /rpc/player.ext.v1.PrivateService/Match \
   Authorization: `Bearer <identityToken>` \
   msg: Empty \
-  resp: PlayerResponse
+  resp: MatchResponse
 
 This is used for generating a Match or a Player game group.
-It will output 5 random players as [`PlayerResponse`](#player_response) bodies.
+It will output 5 random (including self) [`Player`](#player_response) bodies.
 
 #### Config
 
@@ -790,7 +681,7 @@ It will output 5 random players as [`PlayerResponse`](#player_response) bodies.
   POST /rpc/player.ext.v1.PrivateService/Match \
   Authorization: `Bearer <identityToken>` \
   msg: Empty \
-  resp: ConfigResponse
+  resp: GetConfigResponse
 
 This request response apperantly shows the username allowence rules.
 
@@ -799,15 +690,15 @@ This request response apperantly shows the username allowence rules.
 
 ```json
 config {
-  username {
-    allowed_regex: "^[\\u0041-\\u005A\\u0061-\\u007A]*$"
-    allowed_ranges {
-      min: 65
-      max: 90
+  nameRequirements {
+    pattern: "^[\\u0041-\\u005A\\u0061-\\u007A]*$"
+    characterSet {
+      from: 65
+      to: 90
     }
-    allowed_ranges {
-      min: 97
-      max: 122
+    characterSet {
+      from: 97
+      to: 122
     }
   }
 }
@@ -851,20 +742,20 @@ You will still be able to send 2 friend requests to User B.
   resp: GetInvitesResponse
 
 When requesting the list of received invites, you get a list of `invite` bodies with each body having an `action_uuid` with which you control actions like accept, reject and so on.
-The `user_uuid` that got the invite (your own), and a `PlayerResponse` body which contains the whole player metadata with uuid, and player details (game stats, collectables) and the `quota` with `max_friends`, `max_invites`, friend_count and `received_invite_count`
+The `user_uuid` that got the invite (your own), and a `PlayerResponse` body which contains the whole player metadata with uuid, and player details (game stats, collectables) and the `summary` with `limit`, `pendingReceivedInviteLimit`, `friendCount` and `pendingSentInviteCount`
 
 <details>
   <Summary>Received invites</Summary>
 
 ```json
-received_invites {
-  action_uuid: "01972f8a-5024-7218-bb95-73583e92edb8"
-  user_uuid {
-    uuid: "01972f81-3f5b-73ec-99ea-fa9c481ff4a6"
+received {
+  id: "01972f8a-5024-7218-bb95-73583e92edb8"
+  receiver {
+    userId: "01972f81-3f5b-73ec-99ea-fa9c481ff4a6"
   }
-  user_info {
-    uuid: "01972f8a-4c30-723d-8d67-0ee30cf56335"
-    user_data {
+  sender {
+    userId: "01972f8a-4c30-723d-8d67-0ee30cf56335"
+    player {
       name: "FunnyPins"
       tag: "7VY5K26493SHYG"
       level: 4
@@ -874,31 +765,31 @@ received_invites {
         value: "14"
       }
       (truncated metadata)
-      created_at {
-        sec: 1748849282
-        nsec: 424557000
+      createdAt {
+        seconds: 1748849282
+        nanos: 424557000
       }
-      updated_at {
-        sec: 1748849282
-        nsec: 687280000
+      updatedAt {
+        seconds: 1748849282
+        nanos: 687280000
       }
-      uuid: "01972f8a-4c30-723d-8d67-0ee30cf56335"
-      renameble_at {
-        sec: 1749052404
-        nsec: 666831000
+      uid: "01972f8a-4c30-723d-8d67-0ee30cf56335"
+      renamebleAt {
+        seconds: 1749052404
+        nanos: 666831000
       }
     }
   }
-  invited_at {
-    sec: 1748849283
-    nsec: 105022000
+  createdAt {
+    seconds: 1748849283
+    nanos: 105022000
   }
 }
-quota  {
-  max_friends: 100
-  friend_count: 1
-  received_invite_count: 1
-  max_invites: 50
+summary  {
+  limit: 100
+  friendCount: 1
+  pendingSentInviteCount: 1
+  pendingReceivedInviteLimit: 50
 }
 ```
 
@@ -908,11 +799,11 @@ quota  {
   <Summary>Sent invites</Summary>
 
 ```json
-sent_invites {
-  action_uuid: "0197590f-df48-7105-b384-4a0c20be6a3e"
-  user_info {
-    uuid: "0197554e-7bd0-7061-818a-32f59e3254f5"
-    user_data {
+sent {
+  id: "0197590f-df48-7105-b384-4a0c20be6a3e"
+  player {
+    userid: "0197554e-7bd0-7061-818a-32f59e3254f5"
+    player {
       name: "YoungIzzy"
       tag: "5SVU2KM3UPCUH7"
       level: 1
@@ -921,79 +812,36 @@ sent_invites {
         key: "stat_total_visited_destinations"
         value: "1"
       }
-      metadata {
-        key: "stat_total_games"
-        value: "1"
+      (truncated metadata)
+      createdAt {
+        seconds: 1749544255
+        nanos: 228563000
       }
-      metadata {
-        key: "stat_owned_characters"
-        value: "1"
-      }
-      metadata {
-        key: "stat_owned_boards"
-        value: "1"
-      }
-      metadata {
-        key: "selected_portrait"
-        value: "jake_portrait"
-      }
-      metadata {
-        key: "selected_frame"
-        value: "default_frame"
-      }
-      metadata {
-        key: "selected_country"
-        value: "de"
-      }
-      metadata {
-        key: "selected_character"
-        value: "jake.default"
-      }
-      metadata {
-        key: "selected_board"
-        value: "default"
-      }
-      metadata {
-        key: "selected_board_upgrades"
-        value: "default"
-      }
-      metadata {
-        key: "selected_background"
-        value: "default_background"
-      }
-      metadata {
-        key: "highscore_default"
-        value: "395"
-      }
-      created_at {
-        sec: 1749544255
-        nsec: 228563000
-      }
-      updated_at {
-        sec: 1749544255
-        nsec: 228563000
+      updatedAt {
+        seconds: 1749544255
+        nanos: 228563000
       }
       uuid: "0197554e-7bd0-7061-818a-32f59e3254f5"
     }
   }
-  user_uuid {
+  sender {
     uuid: "0197590d-94b8-7955-a4f1-fd080532fcdf"
   }
-  invited_at {
-    sec: 1749545901
-    nsec: 893330000
+  createdAt {
+    seconds: 1749545901
+    nanos: 893330000
   }
 }
-quota {
-  max_friends: 100
-  max_invites: 50
+summary {
+  limit: 100
+  pendingReceivedInviteLimit: 50
 }
 
 ```
 
 </details>
 
-When the invites list is empty, it will only show the [quota](#invite_quota)
+When the invites list is empty, it will only show the [summary](#friend_summary)
 
 #### Get FriendsAndInvites
 
@@ -1034,39 +882,39 @@ userinvite {
   action_uuid: "01972f9b-2f74-74fb-9625-6759350ee44c"
   invited {
     uuid: "01972f81-3f5b-73ec-99ea-fa9c481ff4a6"
-    user_data {
+    player {
       name: "CoolNikos"
       tag: "5NWP2S8G5AP5ZU"
-      created_at {
-        sec: 1748848690
-        nsec: 190112000
+      createdAt {
+        seconds: 1748848690
+        nanos: 190112000
       }
-      updated_at {
-        sec: 1748848690
-        nsec: 190112000
+      updatedAt {
+        seconds: 1748848690
+        nanos: 190112000
       }
       uuid: "01972f81-3f5b-73ec-99ea-fa9c481ff4a6"
     }
   }
   inviter {
     uuid: "01972f99-79aa-7149-9561-706998e2c455"
-    user_data {
+    player {
       name: "CoolNikos"
       tag: "115ULUMIQLQX45"
-      created_at {
-        sec: 1748850277
-        nsec: 993517000
+      createdAt {
+        seconds: 1748850277
+        nanos: 993517000
       }
-      updated_at {
-        sec: 1748850277
-        nsec: 993517000
+      updatedAt {
+        seconds: 1748850277
+        nanos: 993517000
       }
       uuid: "01972f99-79aa-7149-9561-706998e2c455"
     }
   }
-  invited_at {
-    sec: 1748850388
-    nsec: 849272000
+  createdAt {
+    seconds: 1748850388
+    nanos: 849272000
   }
 }
 ```
@@ -1150,32 +998,32 @@ status {
 - Gets the player wallet
 - Sample request (2025-12-20): \
   POST /rpc/energy.ext.v1.PrivateService/GetWallet \
-  Authorization: `Bearer <identityToken>` \
+  Authorization: `Bearer <identityToken>`
 
 The Get Wallet request outputs the time the wallet was last updated, and when it exists, show the items dict when having bought Skip Ad Tickets.
 
 <h5>Default Response</h5>
 
 ```json
-walletdata {
-  updated_at {
-    sec: 1748426414
-    nsec: 222099082
+wallet {
+  updatedAt {
+    seconds: 1748426414
+    nanos: 222099082
   }
 }
 ```
 
-<h5>efault Response (Bought Tickets)</h5>
+<h5>Default Response (Bought Tickets)</h5>
 
 ```json
-walletdata {
+wallet {
   items {
     key: "skip_ad_ticket"
     value: "10"
   }
-  updated_at {
-    sec: 1748426414
-    nsec: 222099082
+  updatedAt {
+    seconds: 1748426414
+    nanos: 222099082
   }
 }
 ```
@@ -1218,9 +1066,7 @@ It will, when having bought skip ad tickets, contain them in the `items` dict as
 - Consumes from an offer
 - Sample request (2025-12-21): \
   POST /rpc/wallet.ext.v1.PrivateService/Consume \
-  Authorization: `Bearer <identityToken>` \
-  msg: Empty \
-  resp: SendInviteResponse
+  Authorization: `Bearer <identityToken>`
 
 You can manipulate the tickets by using these instructions [hacks.md](./hacks.md#skip-ad-tickets)
 
@@ -1504,8 +1350,8 @@ It has a limit of 10 times per 24 hours.
 - Sample request (2025-03-04): \
   POST /rpc/tournament.ext.v2.PrivateService/GetTournamentInfo \
   Authorization: `Bearer <identityToken>` \
-  msg: TournamentRequest \
-  resp: TournamentResponse
+  msg: GetTournamentInfoRequest \
+  resp: GetTournamentInfoResponse
 
 This Request returns the [TournamentInfo](#tournament_info) body without player data.
 
@@ -1516,8 +1362,8 @@ This Request returns the [TournamentInfo](#tournament_info) body without player 
 - Sample request (2025-03-04): \
   POST /rpc/tournament.ext.v2.PrivateService/GetTournamentInfo \
   Authorization: `Bearer <identityToken>` \
-  msg: TournamentRequest \
-  resp: TournamentResponse
+  msg: JoinTournamentRequest \
+  resp: JoinTournamentResponse
 
 This Request returns the [TournamentInfo](#tournament_info) body. \
 This request can only be made when a SubmitScore request was made.
@@ -1542,8 +1388,33 @@ This Score is then shown in the Leaderbord.
 - Sample request (2025-03-04): \
   POST /rpc/tournament.ext.v2.PrivateService/GetScores \
   Authorization: `Bearer <identityToken>` \
-  msg: TournamentRequest \
-  resp: TournamentResponse
+  msg: GetScoresRequest \
+  resp: GetScoresResponse
 
 This Request returns the [TournamentInfo](#tournament_info) body. \
 This request can only be made when a JoinTournament request was made.
+
+#### GetResults
+
+- POST `/rpc/tournament.ext.v2.PrivateService/GetResults`
+- Gets Tournament Info with opponents
+- Sample request (2025-03-04): \
+  POST /rpc/tournament.ext.v2.PrivateService/GetResults \
+  Authorization: `Bearer <identityToken>` \
+  msg: GetResultsRequest \
+  resp: GetResultsResponse
+
+?
+
+#### ClaimRewards
+
+- POST `/rpc/tournament.ext.v2.PrivateService/ClaimRewards`
+- Gets Tournament Info with opponents
+- Sample request (2025-03-04): \
+  POST /rpc/tournament.ext.v2.PrivateService/ClaimRewards \
+  Authorization: `Bearer <identityToken>` \
+  msg: ClaimRewardsRequest \
+  resp: Empty
+
+?
+When being in the top after the end of the TopRun, you can make the ClaimRewards request to get the rewards.

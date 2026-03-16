@@ -1,14 +1,13 @@
 import os
 import random
-from datetime import UTC, datetime
 
 import httpx
 from dotenv import load_dotenv
 from generator import *
+from player_pb2 import *
 
 load_dotenv()
 identityToken = str(os.environ.get("IDENTITYTOKEN", ""))
-
 
 api_url = "https://subway.prod.sybo.net"
 user_agent = "grpc-dotnet/2.63.0 (Mono Unity; CLR 4.0.30319.17020; netstandard2.0; arm64) com.kiloo.subwaysurf/3.46.9"
@@ -32,10 +31,8 @@ def auth_register():
 
 
 def create_player(authtoken, name):
-    from player_pb2 import PlayerResponse, UpdatePlayerRequest
-
     url = api_url + "/rpc/player.ext.v1.PrivateService/CreatePlayer"
-    msg = UpdatePlayerRequest(
+    msg = CreatePlayerRequest(
         name=name,
     )
 
@@ -54,14 +51,12 @@ def create_player(authtoken, name):
         raise RuntimeError("CreatePlayer response too short")
     msg_len = int.from_bytes(raw[1:5], "big")
     grpc_payload = raw[5 : 5 + msg_len]
-    resp = PlayerResponse()
+    resp = CreatePlayerResponse()
     resp.ParseFromString(grpc_payload)
     return resp
 
 
 def update_player(authtoken, name):
-    from player_pb2 import PlayerResponse, UpdatePlayerRequest
-
     character, character_length, outfits_length = choose_character()
     board, upgrades, board_length, upgrades_length = choose_board()
     portrait, frame, background = choose_cosmetics()
@@ -115,18 +110,16 @@ def update_player(authtoken, name):
         raise RuntimeError("CreatePlayer response too short")
     msg_len = int.from_bytes(raw[1:5], "big")
     grpc_payload = raw[5 : 5 + msg_len]
-    resp = PlayerResponse()
+    resp = UpdatePlayerResponse()
     resp.ParseFromString(grpc_payload)
     return resp
 
 
 def send_invite(authtoken, playeruuid):
-    from player_pb2 import PlayerRequest, SendInviteResponse
-
     url = api_url + "/rpc/friends.ext.v1.PrivateService/SendInvite"
 
-    msg = PlayerRequest(
-        player=playeruuid,
+    msg = SendInviteRequest(
+        userId=playeruuid,
     )
 
     body = framing(msg)
@@ -158,7 +151,7 @@ def main(amount: int):
             player_resp = create_player(authtoken, name)
             update_player(authtoken, name)
 
-            playeruuid = player_resp.user_data.uuid
+            playeruuid = player_resp.player.uid
             send_invite(identityToken, playeruuid)
 
         except Exception as e:
